@@ -99,20 +99,43 @@ public class Parse {
     public static Tree<Token> ifStatement() {
         scan(); // skip the 'if' token
         Tree<Token> t = expression();
-        mustBe(THEN);
-        t = list(IF, t, statementList());
+        boolean optionnalEnd;
+        if (optionnalEnd = tokenIn(CONTINUE, BREAK)) {
+            Tree<Token> inst = list(STATEMENTLIST);
+            inst.addChild(leaf(currentToken()));
+            scan();
+            t = list(IF, t, inst);
+        } else {
+            mustBe(THEN);
+            t = list(IF, t, statementList());
+        }
+
         // insert code for any number of 'elif's here
         while (skipToken(ELIF)) {
             t.addChild(expression());
-            mustBe(THEN);
-            t.addChild(statementList());
+            if (optionnalEnd = tokenIn(CONTINUE, BREAK)) {
+                Tree<Token> inst = list(STATEMENTLIST);
+                inst.addChild(leaf(currentToken()));
+                scan();
+                t.addChild(inst);
+            } else {
+                mustBe(THEN);
+                t.addChild(statementList());
+            }
         }
 
         if (skipToken(ELSE)) {
             t.addChild(null);			 // 'no test'
             t.addChild(statementList()); // 'else' statements
+            optionnalEnd = false;
         }
-        mustBe(END);
+
+        if (!optionnalEnd) {
+            mustBe(END);
+        } else if (tokenIn(END)) {
+            //Might contain 'end'
+            skipToken(END);
+        }
         return t;
     }
 
@@ -151,8 +174,6 @@ public class Parse {
      * @return AST for ifStatement
      */
     public static Tree<Token> doStatement() {
-        // The operations needed here a similar to 'while' above
-        // 1. get the next token 
         scan();// skip 'do' token
         Tree<Token> t = statementList();
         if (skipToken(UNTIL)) {
@@ -160,23 +181,6 @@ public class Parse {
         }
         mustBe(END);
         return list(WHILE, null, t);
-
-        // 2. declare an AST (Tree<Token>) object called body and 
-        //    set it by calling statementList() and assigning the result to it.
-        // 3.  your program has read everything upto either 'until' or 'end'
-        // check if the next token is UNTIL, if so skip it
-        // (see treatement of 'else' in 'if' statement above)
-        // 4. if until is found, return the rest of the AST by using
-        //  return list(UNTIL, expression(), body)
-        // do you understand what is happening?   What will be the AST
-        //  of a simple do/until example?
-        // 5. if UNTIL wasn't found the input must be END
-        // Check	
-        //  
-        // 6. Whether END was found or not, 
-        // return list(WHILE, null, body) 
-        // a while statement with no test
-        // 7. and delete the next line
     }
 
     /**

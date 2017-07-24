@@ -1,7 +1,10 @@
 x = 1
 
 tantque x < 10 faire
-    x = x << 1
+
+    si x == 5 rompre
+    sinonsi x == 3 rompre
     ecrire x
     ecrire "\n"
+    x++
 fin
