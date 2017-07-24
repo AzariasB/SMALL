@@ -70,6 +70,9 @@ public class Parse {
                 case IDENTIFIER:
                     aStatement = assignment();
                     break;
+                case FOR:
+                    aStatement = forStatement();
+                    break;
                 case READ:
                     aStatement = readStatement();
                     break;
@@ -89,6 +92,52 @@ public class Parse {
             // add next statement to list
             stList.addChild(aStatement);
         }
+    }
+
+    private static Tree<Token> assignmentList() {
+        Tree<Token> asList = list(STATEMENTLIST);
+        for (;;) {
+            while (skipToken(SEMICOLON));
+            Token tk = currentToken();
+            if (tk == IDENTIFIER) {
+                asList.addChild(assignment());
+            } else {
+                return asList;
+            }
+        }
+    }
+
+    /**
+     * Grammar rul {@code forStatement : 'for' assignementList [while expression][then assignementList] 'do' statementList 'end'
+     * }
+     *
+     * @return AST for forStatement
+     */
+    public static Tree<Token> forStatement() {
+        scan(); //'for'
+        Tree<Token> body = assignmentList();
+        Tree<Token> loop;
+
+        if (skipToken(WHILE)) {
+            body.addChild(loop = list(WHILE, expression()));
+        } else {
+            loop = list(WHILE);
+        }
+
+        Tree<Token> assignements = null;
+        if (skipToken(THEN)) {
+            assignements = assignmentList();
+        }
+
+        mustBe(DO);
+        Tree<Token> statements = statementList();
+        loop.addChild(list(STATEMENTLIST, statements));
+        if (assignements != null) {
+            statements.addChild(assignements);
+        }
+
+        mustBe(END);
+        return body;
     }
 
     /**

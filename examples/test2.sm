@@ -1,10 +1,9 @@
-x = 1
 
-tantque x < 10 faire
-
-    si x == 5 rompre
-    sinonsi x == 3 rompre
+ecrire "coucou\n"
+pour x = 0;y = 0 faire
     ecrire x
+    ecrire " "
+    ecrire y
     ecrire "\n"
-    x++
+    si x > 10 rompre
 fin

@@ -131,17 +131,17 @@ public class CodeGen {
 
             // generate code for a list of statements
             case STATEMENTLIST:
-                for (Tree<Token> tst : tree.allChildren()) {
+                tree.allChildren().forEach((tst) -> {
                     writeStatementCode(tst);
-                }
+                });
                 return;
 
             // as STATEMENTLIST but within a new scope
             case BLOCK: {
                 beginScope();
-                for (Tree<Token> tst : tree.allChildren()) {
+                tree.allChildren().forEach((tst) -> {
                     writeStatementCode(tst);
-                }
+                });
                 endScope();
             }
             return;
