@@ -35,6 +35,7 @@ import java.io.BufferedReader;
 import java.io.IOException;
 import static sal.util.Fail.failEmpty;
 import static sal.util.RE.*;
+
 /**
  * This file contains the definition of the enum Token.
  */
@@ -42,15 +43,18 @@ public enum Token implements Patterned {
 
     EOF,
     UNMATCHED,
-    NUMBER(some(in(DEC)), "<number>"),
+    NUMBER(oneOf(some(DEC), "#" + some(HEX)), "<number>"),
     IDENTIFIER(ALPHA + any(in("A-Za-z0-9_")), "<identifier>"),
-    STRING(DQUOTE + any(notIn(DQUOTE)) + DQUOTE, "<string>"),
-    IF("si"), THEN("alors"), ELSE("sinon"), ELIF, END("fin"),
-    WHILE("tantque"), DO("faire"), UNTIL,
+    STRING(DQUOTE + any(BS + in("n", "\""), notIn(DQUOTE)) + DQUOTE, "<string>"),
+    IF("si"), THEN("alors"), ELSE("sinon"), ELIF("sinonsi"), END("fin"),
+    WHILE("tantque"), DO("faire"), UNTIL("jusqua"),
+    TRUE("vrai"),
+    FALSE("faux"),
+    HALT("arreter"),
     PRINT("ecrire"),
     READ("lire"),
     ASSIGN("=" + RE.notBefore("="), "="),
-    BREAK("rupture"),
+    BREAK("rompre"),
     CONTINUE("continuer"),
     EQ("=="), NE("!="),
     GT(">" + notBefore(">", "="), ">"), GE(">="),
@@ -58,11 +62,12 @@ public enum Token implements Patterned {
     SHL("<<"),
     SHR(">>" + notBefore(">"), ">>"),
     SHRS(">>>"),
-    PLUS(RE.PLUS, "+"), MINUS(RE.MINUS, "-"), NEGATE(null, "-"), TIMES(RE.STAR, "*"), DIVIDE("/"), MOD("%"),
-    INCREMENT, DECREMENT,
+    PLUS(RE.PLUS + notBefore(RE.PLUS), "+"), MINUS(RE.MINUS + notBefore("-"), "-"), NEGATE(null, "-"), TIMES(RE.STAR, "*"), DIVIDE("/"), MOD("%"),
+    INCREMENT(RE.PLUS + RE.PLUS, "++"),
+    DECREMENT(RE.MINUS + RE.MINUS, "--"),
     // punctuation ...
     SEMICOLON(";"), COMMA(","), LP(RE.LPAR, "("), RP(RE.RPAR, ")"),
-    // tokens used to represent syntax features ...
+    // tokens used to represent syn tax features ...
     STATEMENTLIST, BLOCK, // lists of statements
 
     // tokens to annotate the parse tree with extra information

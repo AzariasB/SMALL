@@ -73,6 +73,10 @@ public class Parse {
                 case READ:
                     aStatement = readStatement();
                     break;
+//                case UNTIL://Cant' for now
+//                    aStatement = untilStatement();
+//                    break;
+                case HALT:
                 case BREAK:
                 case CONTINUE:
                     aStatement = leaf(token);
@@ -98,6 +102,11 @@ public class Parse {
         mustBe(THEN);
         t = list(IF, t, statementList());
         // insert code for any number of 'elif's here
+        while (skipToken(ELIF)) {
+            t.addChild(expression());
+            mustBe(THEN);
+            t.addChild(statementList());
+        }
 
         if (skipToken(ELSE)) {
             t.addChild(null);			 // 'no test'
@@ -122,6 +131,21 @@ public class Parse {
     }
 
     /**
+     * Grammar rule {@code untilStatement : 'until' expression 'do' statementList 'end'
+     * }
+     *
+     * @return AST for untilStatement
+     */
+    public static Tree<Token> untilStatement() {
+        scan();// skip the 'until' token
+        Tree<Token> t = expression();
+        mustBe(DO);
+        t = list(UNTIL, t, statementList());
+        mustBe(END);
+        return t;
+    }
+
+    /**
      * Grammar rule  {@code   doStatement     : 'do' statementList ( 'end' | 'until' expression ) }
      *
      * @return AST for ifStatement
@@ -129,8 +153,14 @@ public class Parse {
     public static Tree<Token> doStatement() {
         // The operations needed here a similar to 'while' above
         // 1. get the next token 
-        
-        
+        scan();// skip 'do' token
+        Tree<Token> t = statementList();
+        if (skipToken(UNTIL)) {
+            return list(UNTIL, expression(), t);
+        }
+        mustBe(END);
+        return list(WHILE, null, t);
+
         // 2. declare an AST (Tree<Token>) object called body and 
         //    set it by calling statementList() and assigning the result to it.
         // 3.  your program has read everything upto either 'until' or 'end'
@@ -147,7 +177,6 @@ public class Parse {
         // return list(WHILE, null, body) 
         // a while statement with no test
         // 7. and delete the next line
-        return null;
     }
 
     /**
@@ -243,20 +272,37 @@ public class Parse {
 
     /**
      * Grammar rule
-     * {@code addExpression   : multExpression ( ('+' | '-') multExpression )*}
+     * {@code addExpression   : shiftExpression ( ('+' | '-') multExpression )*}
      *
      * @return AST.
      */
     public static Tree<Token> addExpression() {
-        Tree<Token> t = multExpression();
+        Tree<Token> t = shiftExpression();
         for (Token tok = currentToken(); ADDOPS.contains(tok); tok = currentToken()) {
+            scan();
+            t = list(tok, t, shiftExpression());
+        }
+        return t;
+    }
+
+    private static final EnumSet<Token> SHIFTOPS = EnumSet.of(SHR, SHL, SHRS);
+
+    /**
+     * Grammar rule {@code shiftExpression : multExpression ( ('>>' | '<<' | '>>>' ) multExpression )*
+     * }
+     *
+     * @return AST.
+     */
+    public static Tree<Token> shiftExpression() {
+        Tree<Token> t = multExpression();
+        for (Token tok = currentToken(); SHIFTOPS.contains(tok); tok = currentToken()) {
             scan();
             t = list(tok, t, multExpression());
         }
         return t;
     }
 
-    private static final EnumSet<Token> MULTOPS = EnumSet.of(TIMES, DIVIDE, MOD, SHR, SHL, SHRS);
+    private static final EnumSet<Token> MULTOPS = EnumSet.of(TIMES, DIVIDE, MOD);
 
     /**
      * Grammar rule {@code multExpression  : term ( ('*' | '/' | '%' ) term )* }
@@ -281,14 +327,12 @@ public class Parse {
         Token token = currentToken();
         String value = currentText();
         Tree<Token> t = null;
-
         switch (token) {
             case LP:
                 scan();    // get next token
                 t = expression();
                 mustBe(RP);
                 return t;
-
             case IDENTIFIER:
                 t = leaf(token, value);
                 break;
@@ -296,19 +340,35 @@ public class Parse {
             case NUMBER: {
                 if (value.charAt(0) == '#') {
                     // convert string after '#' to binary, then back to decimal as a string
-                    value = Integer.toString(Integer.valueOf(value.substring(1), 16));
+                    value = Long.toString(Long.valueOf(value.substring(1), 16));
                 }
                 t = leaf(token, value);
                 break;
             }
 
+            case TRUE:
+                t = leaf(NUMBER, "1");
+                break;
+            case FALSE:
+                t = leaf(NUMBER, "0");
+                break;
             case MINUS:
                 scan();	// step over operator
                 return list(token, term());
 
             default:
-                mustBe(IDENTIFIER, NUMBER, MINUS,
-                        LP, TO_INT, TO_STR, LEN_STR);  // didn't find the start of an expression - there has to be one;
+                mustBe(IDENTIFIER,
+                        NUMBER,
+                        MINUS,
+                        TRUE,
+                        FALSE,
+                        LP,
+                        TO_INT,
+                        TO_STR,
+                        LEN_STR,
+                        INCREMENT,
+                        DECREMENT
+                );  // didn't find the start of an expression - there has to be one;
                 break;
 
         }

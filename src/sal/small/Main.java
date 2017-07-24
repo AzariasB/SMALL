@@ -111,7 +111,6 @@ public class Main {
     }
 
     public static void main(String[] args) {
-
         int argsLength = args.length;
         if (argsLength == 0) {
             System.err.println("Valid arguments are: [-output folder] (filename )+ ");

@@ -1,0 +1,7 @@
+x = 1
+
+tantque x < 10 faire
+    x = x << 1
+    ecrire x
+    ecrire "\n"
+fin
