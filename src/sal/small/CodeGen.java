@@ -360,11 +360,11 @@ public class CodeGen {
                     return STR_TYPE;
                 }
             case SHR:
-                if (!child0IsString) {
-                    ErrorStream.log("");
+                if (child1IsString) {
+                    ErrorStream.log("Tried to shift with a string");
                     return INT_TYPE;
                 }
-                if (!child1IsString) {
+                if (!child0IsString) {
                     emit(SHR);
                     return INT_TYPE;
                 } else {
