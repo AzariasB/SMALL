@@ -1,0 +1,43 @@
+// test 1  check >, < etc work = otherwise testing is very dsificult
+
+at = 3 < 4
+af = 4 <= 3
+
+// si this doesn't ecrire out true 1 false 0 the rest of the output is meaningless
+
+ecrire "true ", at, " false ", af, "\n";
+
+// test other relations:
+
+
+si 1 == 2 alors
+	ecrire "Test == failed\n"
+fin
+
+si 1 != 1 alors
+	ecrire "Test != failed\n"
+
+fin
+
+si 1 > 2 alors
+	ecrire "Test > failed\n"
+fin
+
+si 2 < 1 alors
+	ecrire "Test < failed\n"
+fin
+
+si 2 <= 1 alors
+	ecrire "Test <= failed\n"
+fin
+
+si 1 >= 2 alors
+	ecrire "Test >= failed\n"
+fin
+
+
+si (1 == 2) + (1 != 1) + (1 > 2) + (2 < 1) + (2 <= 1)+ (1 >= 2) == 0 alors
+	ecrire "All tests passed\n"
+fin
+
+
