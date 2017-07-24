@@ -1,3 +1,4 @@
 
+ecrire("coucou" << 2)
 ecrire ("lastOne" >> 3)
 ecrire "\n"
