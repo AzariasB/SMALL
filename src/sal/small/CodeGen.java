@@ -348,27 +348,16 @@ public class CodeGen {
                     return STR_TYPE;
                 }
             case SHL:
-                if (child1IsString) {
-                    ErrorStream.log("Tried to shift with a string");
-                    return INT_TYPE;
-                }
-                if (!child0IsString) {
-                    emit(SHL);
-                    return INT_TYPE;
-                } else {
-                    emit(LEFT_STR);
-                    return STR_TYPE;
-                }
             case SHR:
                 if (child1IsString) {
                     ErrorStream.log("Tried to shift with a string");
                     return INT_TYPE;
                 }
                 if (!child0IsString) {
-                    emit(SHR);
+                    emit(token);
                     return INT_TYPE;
                 } else {
-                    emit(RIGHT_STR);
+                    emit(token == SHL ? LEFT_STR : RIGHT_STR);
                     return STR_TYPE;
                 }
             case MINUS:
