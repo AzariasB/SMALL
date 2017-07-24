@@ -158,10 +158,8 @@ public class CodeGen {
                 Tree<Token> var = tree.child(0);
                 boolean stringVar = isStringVar(var);
                 boolean stringExp = writeExpressionCode(tree.child(1));
-                if (stringVar == stringExp) {
+                if (stringVar == stringExp || stringVar) {
                     store(var.toString());
-                } else if (stringVar) {
-                    ErrorStream.log("Attempt to assign int value to string variable \'%s\'.\n", var.toString());
                 } else {
                     ErrorStream.log("Attempt to assign string value to int variable \'%s\'.\n", var.toString());
                 }
@@ -280,7 +278,17 @@ public class CodeGen {
                     ErrorStream.log("Attempt to apply \'-\' to a string.\n");
                 }
                 return INT_TYPE;	// assuming an int was intended!	
-            //!!! Insert String operations here !!!		
+            //!!! Insert String operations here !!:
+            case TO_INT:
+                if (!child0IsString) {
+                    ErrorStream.log("Attempt to apply " + TO_INT.asText + " to an int.\n");
+                }
+                return INT_TYPE;
+            case TO_STR:
+                if (child0IsString) {
+                    ErrorStream.log("Attempt to apply " + TO_STR.asText + " to a string.\n");
+                }
+                return STR_TYPE;
 
         }
 
@@ -325,12 +333,48 @@ public class CodeGen {
             // String and integer operations
             // !!!!! STRING OPS NOT YET COMPLETE !!!!
             case PLUS:
+                if (!child0IsString && !child1IsString) {
+                    emit(PLUS);
+                    return INT_TYPE;
+                } else {
+                    if (!child0IsString) {
+                        emit(SWAP);
+                        emit(TO_STR);
+                        emit(SWAP);
+                    } else if (!child1IsString) {
+                        emit(TO_STR);
+                    }
+                    emit(CONCAT);
+                    return STR_TYPE;
+                }
+            case SHL:
+                if (child1IsString) {
+                    ErrorStream.log("Tried to shift with a string");
+                    return INT_TYPE;
+                }
+                if (!child0IsString) {
+                    emit(SHL);
+                    return INT_TYPE;
+                } else {
+                    emit(LEFT_STR);
+                    return STR_TYPE;
+                }
+            case SHR:
+                if (!child0IsString) {
+                    ErrorStream.log("");
+                    return INT_TYPE;
+                }
+                if (!child1IsString) {
+                    emit(SHR);
+                    return INT_TYPE;
+                } else {
+                    emit(RIGHT_STR);
+                    return STR_TYPE;
+                }
             case MINUS:
             case TIMES:
             case DIVIDE:
             case MOD:
-            case SHL:
-            case SHR:
             case SHRS: {
                 emit(token);
             }

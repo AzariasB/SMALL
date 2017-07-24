@@ -387,9 +387,9 @@ public class Parse {
                 mustBe(RP);
                 return t;
             case IDENTIFIER:
+            case STRING:
                 t = leaf(token, value);
                 break;
-
             case NUMBER: {
                 if (value.charAt(0) == '#') {
                     // convert string after '#' to binary, then back to decimal as a string
@@ -406,9 +406,10 @@ public class Parse {
                 t = leaf(NUMBER, "0");
                 break;
             case MINUS:
+            case TO_INT:
+            case TO_STR:
                 scan();	// step over operator
                 return list(token, term());
-
             default:
                 mustBe(IDENTIFIER,
                         NUMBER,
@@ -419,8 +420,7 @@ public class Parse {
                         TO_INT,
                         TO_STR,
                         LEN_STR,
-                        INCREMENT,
-                        DECREMENT
+                        STRING
                 );  // didn't find the start of an expression - there has to be one;
                 break;
 
