@@ -213,6 +213,7 @@ public class CodeGen {
                 beginScope();
                 Label endSwitch = newLabel("EXIT SWITCH");
                 int pairs = tree.children();
+                Label afterCase = newLabel("AFTER CASE");
                 for (int i = 0; i < pairs; i += 2) {
                     Tree<Token> test = tree.child(i);
                     Tree<Token> code = tree.child(i + 1);
@@ -220,10 +221,13 @@ public class CodeGen {
                         Label nextTest = newLabel("NEXT CASE");
                         writeExpressionCode(test);
                         ifFalse(nextTest);
+                        setLabel(afterCase);
+                        afterCase = newLabel("AFTER CASE");
                         writeStatementCode(code);
-                        jump(endSwitch);
+                        jump(afterCase);//Will jump only if no break in statement list
                         setLabel(nextTest);
                     } else {
+                        setLabel(afterCase);
                         writeStatementCode(code);
                     }
                 }

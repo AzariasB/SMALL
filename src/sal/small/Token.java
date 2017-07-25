@@ -33,7 +33,6 @@ import sal.util.*;
 
 import java.io.BufferedReader;
 import java.io.IOException;
-import static sal.util.Fail.failEmpty;
 import static sal.util.RE.*;
 
 /**
@@ -48,6 +47,7 @@ public enum Token implements Patterned {
     STRING(DQUOTE + any(BS + WILD, notIn(DQUOTE)) + DQUOTE, "<string>"),
     IF("si"), THEN("alors"), ELSE("sinon"), ELIF("sinonsi"), END("fin"),
     WHILE("tantque"), DO("faire"), UNTIL("jusqua"), FOR("pour"), SWITCH("aiguiller"), CASE("cas"), DEFAULT("defaut"),
+    FUNCTION("fonction"), VOID("vide"),
     TRUE("vrai"),
     FALSE("faux"),
     HALT("arreter"),

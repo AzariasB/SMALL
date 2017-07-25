@@ -1,15 +1,15 @@
 
-x$ = "cent"
+x$ = "deux"
 aiguiller x$ faire
     cas "deux":
         ecrire "coucou\n"
+        rompre
     cas "trois":
         ecrire "nope\n"
     cas "quatre":
         ecrire "c'est bon\n"
     cas "vingt":
         ecrire "c'est y \n"
-        rompre  
     defaut:
         ecrire "defaut\n"
 fin

@@ -79,6 +79,9 @@ public class Parse {
                 case SWITCH:
                     aStatement = switchStatement();
                     break;
+                case FUNCTION:
+                    aStatement = functionStatement();
+                    break;
                 case HALT:
                 case BREAK:
                 case CONTINUE:
@@ -94,6 +97,11 @@ public class Parse {
         }
     }
 
+    private static Tree<Token> functionStatement(){
+        
+        return null;
+    }
+    
     private static Tree<Token> assignmentList() {
         Tree<Token> asList = list(STATEMENTLIST);
         for (;;) {
