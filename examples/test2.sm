@@ -35,8 +35,20 @@ pour k = 0 alors k++ faire
     si k > 100 rompre
 fin
 
-ecrire "Conditionnal loop"
+ecrire "Conditionnal loop\n"
 pour l = 0 tantque l < 10 faire
-    ecrire "Conditional " + l
     l++
+    si l == 5 continuer
+    ecrire ("Conditional " + l + "\n")
 fin
+
+ecrire("hello" << 2)
+ecrire("good bye" >> 3)
+ecrire("good" == "bad" ? "Good is bad\n" : "Good is not bad\n")
+ecrire("Input:")
+lire input$
+ecrire(input$ + "'s length : " + lon(input$) +"\n")
+ecrire("Input a number:")
+lire number$
+ecrire("Input + 10 = " + (aentier(number$) + 10) + "\n")
+

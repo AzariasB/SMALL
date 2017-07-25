@@ -123,7 +123,7 @@ FALSE_VAL#25:
   iinc 3  1
   goto NEXT_LOOP#22
 EXIT_LOOP#23:
-  ldc "Contionnal loop\n"
+  ldc "Simple loop\n"
   invokestatic sal/Library/print(Ljava.lang.String;)V
   ldc 0
   istore 4
@@ -151,7 +151,7 @@ NEXT_TEST#29:
 END_IF#28:
   goto NEXT_LOOP#26
 EXIT_LOOP#27:
-  ldc "The loop\n"
+  ldc "Incremental loop\n"
   invokestatic sal/Library/print(Ljava.lang.String;)V
   ldc 0
   istore 5
@@ -181,7 +181,95 @@ END_IF#34:
   iinc 5  1
   goto NEXT_LOOP#32
 EXIT_LOOP#33:
+  ldc "Conditionnal loop\n"
+  invokestatic sal/Library/print(Ljava.lang.String;)V
+  ldc 0
+  istore 6
+NEXT_LOOP#38:
+  iload 6
+  ldc 10
+  if_icmplt TRUE_VAL#40
+  iconst_0
+  goto FALSE_VAL#41
+TRUE_VAL#40:
+  iconst_1
+FALSE_VAL#41:
+  ifeq EXIT_LOOP#39
+  iinc 6  1
+  iload 6
+  ldc 5
+  if_icmpeq TRUE_VAL#44
+  iconst_0
+  goto FALSE_VAL#45
+TRUE_VAL#44:
+  iconst_1
+FALSE_VAL#45:
+  ifeq NEXT_TEST#43
+  goto NEXT_LOOP#38
+  goto END_IF#42
+NEXT_TEST#43:
+END_IF#42:
+  ldc "Conditional "
+  iload 6
+  invokestatic sal/Library/toStr(I)Ljava.lang.String;
+  invokestatic sal/Library/concat(Ljava.lang.String;Ljava.lang.String;)Ljava.lang.String;
+  ldc "\n"
+  invokestatic sal/Library/concat(Ljava.lang.String;Ljava.lang.String;)Ljava.lang.String;
+  invokestatic sal/Library/print(Ljava.lang.String;)V
+  goto NEXT_LOOP#38
+EXIT_LOOP#39:
+  ldc "hello"
+  ldc 2
+  invokestatic sal/Library/left(Ljava.lang.String;I)Ljava.lang.String;
+  invokestatic sal/Library/print(Ljava.lang.String;)V
+  ldc "good bye"
+  ldc 3
+  invokestatic sal/Library/right(Ljava.lang.String;I)Ljava.lang.String;
+  invokestatic sal/Library/print(Ljava.lang.String;)V
+  ldc "good"
+  ldc "bad"
+  invokestatic sal/Library/strCmp(Ljava.lang.String;Ljava.lang.String;)I
+  iconst_0
+  if_icmpeq TRUE_VAL#46
+  iconst_0
+  goto FALSE_VAL#47
+TRUE_VAL#46:
+  iconst_1
+FALSE_VAL#47:
+  ifeq FALSE_LABEL#49
+  ldc "Good is bad\n"
+  goto END_QUERY#48
+FALSE_LABEL#49:
+  ldc "Good is not bad\n"
+END_QUERY#48:
+  invokestatic sal/Library/print(Ljava.lang.String;)V
+  ldc "Input:"
+  invokestatic sal/Library/print(Ljava.lang.String;)V
+  invokestatic sal/Library/readStr()Ljava.lang.String;
+  astore 7
+  aload 7
+  ldc "'s length : "
+  invokestatic sal/Library/concat(Ljava.lang.String;Ljava.lang.String;)Ljava.lang.String;
+  aload 7
+  invokestatic sal/Library/len(Ljava.lang.String;)I
+  invokestatic sal/Library/toStr(I)Ljava.lang.String;
+  invokestatic sal/Library/concat(Ljava.lang.String;Ljava.lang.String;)Ljava.lang.String;
+  ldc "\n"
+  invokestatic sal/Library/concat(Ljava.lang.String;Ljava.lang.String;)Ljava.lang.String;
+  invokestatic sal/Library/print(Ljava.lang.String;)V
+  ldc "Input a number:"
+  invokestatic sal/Library/print(Ljava.lang.String;)V
+  invokestatic sal/Library/readStr()Ljava.lang.String;
+  astore 8
+  ldc "Input + 10 = "
+  aload 8
+  invokestatic sal/Library/toInt(Ljava.lang.String;)I
+  ldc 10
+  iadd
+  invokestatic sal/Library/toStr(I)Ljava.lang.String;
+  invokestatic sal/Library/concat(Ljava.lang.String;Ljava.lang.String;)Ljava.lang.String;
+  invokestatic sal/Library/print(Ljava.lang.String;)V
     return
-.limit locals 6
+.limit locals 9
 .end method
 

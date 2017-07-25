@@ -177,9 +177,9 @@ public class Parse {
         scan(); // skip the 'if' token
         Tree<Token> t = expression();
         boolean optionnalEnd;
-        if (optionnalEnd = tokenIn(CONTINUE, BREAK)) {
-            Tree<Token> inst = list(STATEMENTLIST, statementList());
-            t = list(IF, t, inst);
+        if (optionnalEnd = tokenIn(CONTINUE, BREAK)) {//Not using statementList() because we just want one instruction
+            t = list(IF, t, list(STATEMENTLIST, leaf(currentToken())));
+            scan();
         } else {
             mustBe(THEN);
             t = list(IF, t, statementList());
