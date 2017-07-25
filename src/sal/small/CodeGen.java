@@ -206,6 +206,18 @@ public class CodeGen {
             }
             return;
 
+            case CASE: {
+                System.out.println("CASE");
+            }
+            return;
+
+            case SWITCH: {
+                beginScope();
+
+                endScope();
+            }
+            return;
+
             case UNTIL: {
                 beginScope();
                 Label continueLabel = newLabel("NEXT LOOP");
@@ -298,7 +310,11 @@ public class CodeGen {
                     ErrorStream.log("Attempt to apply " + TO_STR.asText + " to a string.\n");
                 }
                 return STR_TYPE;
-
+            case LEN_STR:
+                if (!child0IsString) {
+                    ErrorStream.log("Attempt to get " + LEN_STR.asText + " of a non-string.\n");
+                }
+                return INT_TYPE;
         }
 
         // Now binary operations

@@ -135,7 +135,7 @@ public class Code {
         libCall(LEFT_STR, "left(~I)~");		// ~ with be replaced with String
         libCall(FORMAT_STR, "format(~~)~");		// ~ with be replaced with String
         libCall(FORMAT_INT, "format(~I)~");		// ~ with be replaced with String
-        libCall(COMPARE_STR, "compare(~~)I");	// ~ with be replaced with String
+        libCall(COMPARE_STR, "strCmp(~~)I");	// ~ with be replaced with String
         libCall(LEN_STR, "len(~)I");			// ~ with be replaced with String
         libCall(READ_INT, "readInt()I"); 		// call java scanner to get an integer
         libCall(READ_STR, "readStr()~"); 		// call java scanner to get a String

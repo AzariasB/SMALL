@@ -1,8 +1,2 @@
-sum = 0
-x = 1
-tantque x != 0 faire
-    ecrire "Enter number (end with 0): "
-    lire x
-    sum = sum + x
-fin
-ecrire("Sum is " + sum + "\n");
+
+a= aentier("10")
