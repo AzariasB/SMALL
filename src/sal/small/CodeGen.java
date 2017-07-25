@@ -211,16 +211,23 @@ public class CodeGen {
 
             case SWITCH: {
                 beginScope();
-                writeExpressionCode(tree.child(0));
-                emit("lookupswitch");
-                Map<Label, Tree<Token>> tokens = new HashMap<>();
-                for (int i = 1; i < tree.children(); i++) {
-                    Tree<Token> caseTree = tree.child(i);
-                    System.out.println(caseTree.child(0).toString());
-                    Label caseLabel = newLabel("CASE" + caseTree.child(0).toString());
-                    tokens.put(caseLabel, caseTree.child(1));
-                    emit(String.format("%s:%S", caseTree.child(0), caseLabel.value));
+                Label endSwitch = newLabel("EXIT SWITCH");
+                int pairs = tree.children();
+                for (int i = 0; i < pairs; i += 2) {
+                    Tree<Token> test = tree.child(i);
+                    Tree<Token> code = tree.child(i + 1);
+                    if (test != null) {
+                        Label nextTest = newLabel("NEXT CASE");
+                        writeExpressionCode(test);
+                        ifFalse(nextTest);
+                        writeStatementCode(code);
+                        jump(endSwitch);
+                        setLabel(nextTest);
+                    } else {
+                        writeStatementCode(code);
+                    }
                 }
+                setLabel(endSwitch);
                 endScope();
             }
             return;
@@ -249,9 +256,20 @@ public class CodeGen {
             }
             return;
 
-            case BREAK:
+            case BREAK: {
+                Label l = getLabel("EXIT LOOP");
+                if (l == null) {
+                    l = getLabel("EXIT SWITCH");
+                }
+                if (l == null) {
+                    ErrorStream.log("'break' used outside of loop or switch.\n");
+                } else {
+                    jump(l);
+                }
+            }
+            return;
             case CONTINUE: {
-                Label l = getLabel((token == BREAK) ? "EXIT LOOP" : "NEXT LOOP");
+                Label l = getLabel("NEXT LOOP");
                 if (l == null) {
                     ErrorStream.log("\'break\' or \'continue\' used outside a loop.\n");
                 } else {

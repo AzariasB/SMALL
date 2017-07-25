@@ -79,9 +79,6 @@ public class Parse {
                 case SWITCH:
                     aStatement = switchStatement();
                     break;
-//                case UNTIL://Cant' for now
-//                    aStatement = untilStatement();
-//                    break;
                 case HALT:
                 case BREAK:
                 case CONTINUE:
@@ -95,19 +92,6 @@ public class Parse {
             // add next statement to list
             stList.addChild(aStatement);
         }
-    }
-
-    private static Tree<Token> switchStatement() {
-        scan();//'switch'
-        Tree<Token> exp = list(SWITCH, expression());
-        mustBe(DO);
-        while (skipToken(CASE)) {
-            Tree<Token> tk = expression();
-            mustBe(COLON);
-            exp.addChild(list(CASE, tk, statementList()));
-        }
-        mustBe(END);
-        return exp;
     }
 
     private static Tree<Token> assignmentList() {
@@ -150,6 +134,27 @@ public class Parse {
         loop.addChild(list(STATEMENTLIST, statements));
         if (assignements != null) {
             statements.addChild(assignements);
+        }
+
+        mustBe(END);
+        return body;
+    }
+
+    private static Tree<Token> switchStatement() {
+        scan();//'switch'
+        Tree<Token> body = list(SWITCH);
+        Tree<Token> exp = expression();
+        mustBe(DO);
+        while (skipToken(CASE)) {
+            Tree<Token> tk = expression();
+            mustBe(COLON);
+            body.addChild(list(EQ, exp, tk));
+            body.addChild(statementList());
+        }
+        if (skipToken(DEFAULT)) {
+            mustBe(COLON);
+            body.addChild(null);
+            body.addChild(statementList());
         }
 
         mustBe(END);
