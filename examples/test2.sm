@@ -5,4 +5,4 @@ tantque x != 0 faire
     lire x
     sum = sum + x
 fin
-ecrire "Sum is " + sum + "\n";
+ecrire("Sum is " + sum + "\n");

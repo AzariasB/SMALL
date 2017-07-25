@@ -406,6 +406,8 @@ public class Parse {
                 t = leaf(NUMBER, "0");
                 break;
             case MINUS:
+                scan();
+                return list(NEGATE, term());
             case TO_INT:
             case TO_STR:
                 scan();	// step over operator
