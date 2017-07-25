@@ -18,7 +18,10 @@ import sal.util.Templater;
 import sal.util.ErrorStream;
 
 import java.io.PrintStream;
+import java.util.ArrayList;
 import java.util.EnumMap;
+import java.util.HashMap;
+import java.util.List;
 import java.util.Map;
 
 import static sal.small.Scope.*;
@@ -206,14 +209,18 @@ public class CodeGen {
             }
             return;
 
-            case CASE: {
-                System.out.println("CASE");
-            }
-            return;
-
             case SWITCH: {
                 beginScope();
-
+                writeExpressionCode(tree.child(0));
+                emit("lookupswitch");
+                Map<Label, Tree<Token>> tokens = new HashMap<>();
+                for (int i = 1; i < tree.children(); i++) {
+                    Tree<Token> caseTree = tree.child(i);
+                    System.out.println(caseTree.child(0).toString());
+                    Label caseLabel = newLabel("CASE" + caseTree.child(0).toString());
+                    tokens.put(caseLabel, caseTree.child(1));
+                    emit(String.format("%s:%S", caseTree.child(0), caseLabel.value));
+                }
                 endScope();
             }
             return;
@@ -298,22 +305,26 @@ public class CodeGen {
                 if (child0IsString) {
                     ErrorStream.log("Attempt to apply \'-\' to a string.\n");
                 }
+                emit(NEGATE);
                 return INT_TYPE;	// assuming an int was intended!	
             //!!! Insert String operations here !!:
             case TO_INT:
                 if (!child0IsString) {
                     ErrorStream.log("Attempt to apply " + TO_INT.asText + " to an int.\n");
                 }
+                emit(token);
                 return INT_TYPE;
             case TO_STR:
                 if (child0IsString) {
                     ErrorStream.log("Attempt to apply " + TO_STR.asText + " to a string.\n");
                 }
+                emit(token);
                 return STR_TYPE;
             case LEN_STR:
                 if (!child0IsString) {
                     ErrorStream.log("Attempt to get " + LEN_STR.asText + " of a non-string.\n");
                 }
+                emit(token);
                 return INT_TYPE;
         }
 
@@ -389,6 +400,8 @@ public class CodeGen {
             case TIMES:
             case DIVIDE:
             case MOD:
+            case MINIMUM:
+            case MAXIMUM:
             case SHRS: {
                 emit(token);
             }

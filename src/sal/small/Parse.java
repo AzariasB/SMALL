@@ -100,8 +100,10 @@ public class Parse {
     private static Tree<Token> switchStatement() {
         scan();//'switch'
         Tree<Token> exp = list(SWITCH, expression());
+        mustBe(DO);
         while (skipToken(CASE)) {
             Tree<Token> tk = expression();
+            mustBe(COLON);
             exp.addChild(list(CASE, tk, statementList()));
         }
         mustBe(END);

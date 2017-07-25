@@ -1,2 +1,3 @@
 
-a= aentier("10")
+x = aentier("10")
+ecrire x

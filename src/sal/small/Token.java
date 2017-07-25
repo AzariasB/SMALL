@@ -52,6 +52,8 @@ public enum Token implements Patterned {
     FALSE("faux"),
     HALT("arreter"),
     PRINT("ecrire"),
+    MINIMUM("min"),
+    MAXIMUM("max"),
     READ("lire"),
     ASSIGN("=" + RE.notBefore("="), "="),
     BREAK("rompre"),
@@ -66,7 +68,7 @@ public enum Token implements Patterned {
     INCREMENT(RE.PLUS + RE.PLUS, "++"),
     DECREMENT(RE.MINUS + RE.MINUS, "--"),
     // punctuation ...
-    SEMICOLON(";"), COMMA(","), LP(RE.LPAR, "("), RP(RE.RPAR, ")"),
+    SEMICOLON(";"), COMMA(","), LP(RE.LPAR, "("), RP(RE.RPAR, ")"), COLON(RE.COLON, ":"),
     // tokens used to represent syn tax features ...
     STATEMENTLIST, BLOCK, // lists of statements
 

@@ -138,6 +138,11 @@ public class RE {
      * matches '.'
      */
     public final static String DOT = "\\.";
+    
+    /**
+     * Mathces ':'
+     */
+    public final static String COLON = "\\:";
 
     /**
      * matches '+'
