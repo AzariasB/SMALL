@@ -22,15 +22,21 @@ pour i = 0 tantque i < 10 alors i++ faire
     ecrire i + "\n"
 fin
 
-ecrire "Contionnal loop\n"
+ecrire "Simple loop\n"
 pour j = 0 faire
     ecrire j + "\n"
     j++
     si j >= 10 rompre
 fin
 
-ecrire "The loop\n"
+ecrire "Incremental loop\n"
 pour k = 0 alors k++ faire
     ecrire k*2 + "\n"
     si k > 100 rompre
+fin
+
+ecrire "Conditionnal loop"
+pour l = 0 tantque l < 10 faire
+    ecrire "Conditional " + l
+    l++
 fin
