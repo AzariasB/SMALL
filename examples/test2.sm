@@ -1,4 +1,7 @@
 
+y$ = 0 == 1 ? "deux" : "non"
+ecrire y$ + "\n"
+
 x$ = "deux"
 aiguiller x$ faire
     cas "deux":
@@ -12,4 +15,22 @@ aiguiller x$ faire
         ecrire "c'est y \n"
     defaut:
         ecrire "defaut\n"
+fin
+
+ecrire "Full loop\n"
+pour i = 0 tantque i < 10 alors i++ faire
+    ecrire i + "\n"
+fin
+
+ecrire "Contionnal loop\n"
+pour j = 0 faire
+    ecrire j + "\n"
+    j++
+    si j >= 10 rompre
+fin
+
+ecrire "The loop\n"
+pour k = 0 alors k++ faire
+    ecrire k*2 + "\n"
+    si k > 100 rompre
 fin

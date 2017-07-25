@@ -68,7 +68,7 @@ public enum Token implements Patterned {
     INCREMENT(RE.PLUS + RE.PLUS, "++"),
     DECREMENT(RE.MINUS + RE.MINUS, "--"),
     // punctuation ...
-    SEMICOLON(";"), COMMA(","), LP(RE.LPAR, "("), RP(RE.RPAR, ")"), COLON(RE.COLON, ":"),
+    SEMICOLON(";"), COMMA(","), LP(RE.LPAR, "("), RP(RE.RPAR, ")"), COLON(RE.COLON, ":"), QUERY(RE.QUERY,"?"),
     // tokens used to represent syn tax features ...
     STATEMENTLIST, BLOCK, // lists of statements
 

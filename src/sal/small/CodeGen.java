@@ -317,7 +317,19 @@ public class CodeGen {
             return (token == NUMBER) ? INT_TYPE
                     : (token == STRING) ? STR_TYPE
                             : isStringVar(tree);
+        }else if(kids == 3){//turnary
+            writeExpressionCode(tree.child(0));
+            Label endLabel = newLabel("END QUERY");
+            Label falseLabel = newLabel("FALSE LABEL");
+            ifFalse(falseLabel);
+            writeExpressionCode(tree.child(1));
+            jump(endLabel);
+            setLabel(falseLabel);
+            boolean returnType = writeExpressionCode(tree.child(2));
+            setLabel(endLabel);
+            return returnType;
         }
+        
         // write code for first child and check type
         boolean child0IsString = writeExpressionCode(tree.child(0));
         // Deal with unary operators 
@@ -428,11 +440,10 @@ public class CodeGen {
                 emit(token);
             }
             return INT_TYPE;
-
-            default:            //must be a binary operator +, -, *, /, %
-                ErrorStream.log("Unexpected token in code generation %s", token.toString());
-                return INT_TYPE; // and why not!
         }
+        
+        ErrorStream.log("Unexpected token in code generation %s", token.toString());
+        return INT_TYPE; // and why not!
     }
 
 }

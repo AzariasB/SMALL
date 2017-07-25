@@ -97,11 +97,11 @@ public class Parse {
         }
     }
 
-    private static Tree<Token> functionStatement(){
-        
+    private static Tree<Token> functionStatement() {
+
         return null;
     }
-    
+
     private static Tree<Token> assignmentList() {
         Tree<Token> asList = list(STATEMENTLIST);
         for (;;) {
@@ -129,7 +129,7 @@ public class Parse {
         if (skipToken(WHILE)) {
             body.addChild(loop = list(WHILE, expression()));
         } else {
-            loop = list(WHILE);
+            body.addChild(loop = list(WHILE, (Tree<Token>) null));
         }
 
         Tree<Token> assignements = null;
@@ -139,11 +139,10 @@ public class Parse {
 
         mustBe(DO);
         Tree<Token> statements = statementList();
-        loop.addChild(list(STATEMENTLIST, statements));
         if (assignements != null) {
             statements.addChild(assignements);
         }
-
+        loop.addChild(list(STATEMENTLIST, statements));
         mustBe(END);
         return body;
     }
@@ -179,9 +178,7 @@ public class Parse {
         Tree<Token> t = expression();
         boolean optionnalEnd;
         if (optionnalEnd = tokenIn(CONTINUE, BREAK)) {
-            Tree<Token> inst = list(STATEMENTLIST);
-            inst.addChild(leaf(currentToken()));
-            scan();
+            Tree<Token> inst = list(STATEMENTLIST, statementList());
             t = list(IF, t, inst);
         } else {
             mustBe(THEN);
@@ -210,10 +207,7 @@ public class Parse {
 
         if (!optionnalEnd) {
             mustBe(END);
-        } else if (tokenIn(END)) {
-            //Might contain 'end'
-            skipToken(END);
-        }
+        }//No check for end
         return t;
     }
 
@@ -327,7 +321,25 @@ public class Parse {
      * @return AST.
      */
     public static Tree<Token> expression() {
-        return relopExpression();
+        return turnaryExpression();
+    }
+
+    /**
+     * Grammar rule
+     * {@code turnaryExpression : relopExpression ? expression : expression}
+     *
+     * @return
+     */
+    private static Tree<Token> turnaryExpression() {
+        Tree<Token> t = relopExpression();
+        if (skipToken(QUERY)) {
+            Tree<Token> ifTrue = expression();
+            mustBe(COLON);
+            Tree<Token> ifFalse = expression();
+            return list(QUERY, t, ifTrue, ifFalse);
+        } else {
+            return t;
+        }
     }
 
     // start with lowest priority <, <= etc
