@@ -70,6 +70,9 @@ public class Parse {
                 case IDENTIFIER:
                     aStatement = assignment();
                     break;
+                case LSQ:
+                    aStatement = arrayAssignement();
+                    break;
                 case FOR:
                     aStatement = forStatement();
                     break;
@@ -78,9 +81,6 @@ public class Parse {
                     break;
                 case SWITCH:
                     aStatement = switchStatement();
-                    break;
-                case FUNCTION:
-                    aStatement = functionStatement();
                     break;
                 case HALT:
                 case BREAK:
@@ -97,9 +97,12 @@ public class Parse {
         }
     }
 
-    private static Tree<Token> functionStatement() {
-
-        return null;
+    private static Tree<Token> arrayAssignement() {
+        scan(); // [
+        Tree<Token> assignement = expression();
+        mustBe(RSQ);// ]
+        mustBe(ASSIGN);
+        return list(RSQ, assignement, expression());
     }
 
     private static Tree<Token> assignmentList() {
@@ -439,7 +442,11 @@ public class Parse {
                 t = leaf(token, value);
                 break;
             }
-
+            case LSQ:
+                scan();
+                t = expression();
+                mustBe(RSQ);
+                return list(LSQ, t);
             case TRUE:
                 t = leaf(NUMBER, "1");
                 break;

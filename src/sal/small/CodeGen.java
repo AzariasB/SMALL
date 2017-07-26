@@ -66,7 +66,7 @@ public class CodeGen {
                     case "CODE":       // we need an inner scope since code is generated as body of main()
                         beginScope();
                         // invent a mythical first arg
-                        newLocal("ARGS TO MAIN");
+                        newLocal("ARGS TO MAIN", "[Ljava.lang.String;");
                         writeStatementCode(tree);
                         endScope();
                         return;
@@ -168,7 +168,15 @@ public class CodeGen {
                 }
             }
             return;
-
+            case RSQ: {
+                Tree<Token> expression = tree.child(0);
+                Tree<Token> value = tree.child(1);
+                emit("aload_0");
+                writeExpressionCode(expression);
+                writeExpressionCode(value);
+                emit("aastore");
+            }
+            return;
             case IF: {
                 beginScope();	// start a scope to cover the whole if
                 Label endIf = newLabel("END IF");  // label for this end-if 
@@ -317,7 +325,7 @@ public class CodeGen {
             return (token == NUMBER) ? INT_TYPE
                     : (token == STRING) ? STR_TYPE
                             : isStringVar(tree);
-        }else if(kids == 3){//turnary
+        } else if (kids == 3) {//turnary
             writeExpressionCode(tree.child(0));
             Label endLabel = newLabel("END QUERY");
             Label falseLabel = newLabel("FALSE LABEL");
@@ -329,12 +337,18 @@ public class CodeGen {
             setLabel(endLabel);
             return returnType;
         }
-        
+
         // write code for first child and check type
+        if (token == LSQ) {
+            emit("aload 0");
+        }
+
         boolean child0IsString = writeExpressionCode(tree.child(0));
         // Deal with unary operators 
         switch (token) {
-            // unary numeric operations
+            case LSQ:
+                emit("aaload");
+                return STR_TYPE;
             case NEGATE:
                 if (child0IsString) {
                     ErrorStream.log("Attempt to apply \'-\' to a string.\n");
@@ -441,7 +455,7 @@ public class CodeGen {
             }
             return INT_TYPE;
         }
-        
+
         ErrorStream.log("Unexpected token in code generation %s", token.toString());
         return INT_TYPE; // and why not!
     }
