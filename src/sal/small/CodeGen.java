@@ -18,11 +18,6 @@ import sal.util.Templater;
 import sal.util.ErrorStream;
 
 import java.io.PrintStream;
-import java.util.ArrayList;
-import java.util.EnumMap;
-import java.util.HashMap;
-import java.util.List;
-import java.util.Map;
 
 import static sal.small.Scope.*;
 import static sal.small.Descriptor.*;
@@ -66,7 +61,7 @@ public class CodeGen {
                     case "CODE":       // we need an inner scope since code is generated as body of main()
                         beginScope();
                         // invent a mythical first arg
-                        newLocal("ARGS TO MAIN", "[Ljava.lang.String;");
+                        newLocal("ARGS TO MAIN", Type.ARRAY_STRING /*"[Ljava.lang.String;"*/);
                         writeStatementCode(tree);
                         endScope();
                         return;
@@ -112,9 +107,6 @@ public class CodeGen {
         return isStringName(tree);
     }
 
-    final static boolean INT_TYPE = false;
-    final static boolean STR_TYPE = true;
-
     /**
      * Generate Jasmin assembler from an AST.
      *
@@ -159,22 +151,22 @@ public class CodeGen {
 
             case ASSIGN: {
                 Tree<Token> var = tree.child(0);
-                boolean stringVar = isStringVar(var);
-                boolean stringExp = writeExpressionCode(tree.child(1));
-                if (stringVar == stringExp || stringVar) {
-                    store(var.toString());
-                } else {
-                    ErrorStream.log("Attempt to assign string value to int variable \'%s\'.\n", var.toString());
-                }
+                Type stringExp = writeExpressionCode(tree.child(1));
+                store(var.toString(), stringExp);
             }
             return;
             case RSQ: {
-                Tree<Token> expression = tree.child(0);
-                Tree<Token> value = tree.child(1);
-                emit("aload_0");
-                writeExpressionCode(expression);
-                writeExpressionCode(value);
-                emit("aastore");
+                Tree<Token> var = tree.child(0);
+                writeExpressionCode(var);
+                writeExpressionCode(tree.child(1));
+                writeExpressionCode(tree.child(2));
+                Type t = getVar(var.toString()).type;
+                if (t == Type.ARRAY_INT) {
+                    emit("iastore");
+                } else if (t == Type.ARRAY_STRING) {
+                    emit("aastore");
+                }
+
             }
             return;
             case IF: {
@@ -186,7 +178,7 @@ public class CodeGen {
                     Tree<Token> code = tree.child(i + 1);
                     if (test != null) {	// not 'else' part
                         Label nextTest = newLabel("NEXT TEST");  // for jump to next elif/else 		
-                        writeExpressionCode(test, INT_TYPE);
+                        writeExpressionCode(test, Type.INT);
                         ifFalse(nextTest);
                         writeStatementCode(code);
                         jump(endIf);
@@ -207,7 +199,7 @@ public class CodeGen {
                 setLabel(continueLabel);	// jump back here for 'continue'
                 Tree<Token> testExpr = tree.child(0);
                 if (testExpr != null) {		// 'null' for do/end
-                    writeExpressionCode(tree.child(0), INT_TYPE);  		// expression to test  
+                    writeExpressionCode(tree.child(0), Type.INT);  		// expression to test  
                     ifFalse(breakLabel);		// if not true, 'break'
                 }
                 writeStatementCode(tree.child(1)); 		// content of while/do
@@ -259,7 +251,7 @@ public class CodeGen {
                 //!!!!!  in the original version	
                 Tree<Token> test = tree.child(0);
                 if (test != null) {
-                    writeExpressionCode(test, INT_TYPE);  	// code for test
+                    writeExpressionCode(test, Type.INT);  	// code for test
                     ifFalse(startLabel);		// if test fails jump back to start
                 }
                 //!!!!!!!!! end of changes
@@ -293,38 +285,42 @@ public class CodeGen {
                 emit("return");
                 break;
             case PRINT: {
-                boolean isString = writeExpressionCode(tree.child(0));
+                boolean isString = writeExpressionCode(tree.child(0)).isString();
                 emit(isString ? PRINT_STR : PRINT_INT);
                 return;
             }
 
             case READ_STR:
+                emit(token);
+                store(tree.toString(), Type.STRING);
+                break;
             case READ_INT: {
                 emit(token);
-                store(tree.toString());
-                return;
+                store(tree.toString(), Type.INT);
+                break;
             }
 
         }
     }
 
-    public static void writeExpressionCode(Tree<Token> tree, boolean needsString) {
-        boolean expIsString = writeExpressionCode(tree);
+    public static void writeExpressionCode(Tree<Token> tree, Type needsString) {
+        Type expIsString = writeExpressionCode(tree);
         if (needsString != expIsString) {
-            emit(needsString ? TO_STR : LEN_STR);
+            emit(needsString == Type.STRING ? TO_STR : LENGTH);
         }
     }
 
-    public static boolean writeExpressionCode(Tree<Token> tree) {
+    public static Type writeExpressionCode(Tree<Token> tree) {
 
         Token token = tree.token();
         int kids = tree.children();
         if (kids == 0) {
             //  a leaf - must be Number, String or Identifier
             emit(token, tree.toString());
-            return (token == NUMBER) ? INT_TYPE
-                    : (token == STRING) ? STR_TYPE
-                            : isStringVar(tree);
+            return (token == NUMBER) ? Type.INT
+                    : (token == STRING) ? Type.STRING
+                            : isStringVar(tree) ? Type.STRING
+                            : Type.ARRAY_STRING;
         } else if (kids == 3) {//turnary
             writeExpressionCode(tree.child(0));
             Label endLabel = newLabel("END QUERY");
@@ -333,51 +329,74 @@ public class CodeGen {
             writeExpressionCode(tree.child(1));
             jump(endLabel);
             setLabel(falseLabel);
-            boolean returnType = writeExpressionCode(tree.child(2));
+            Type returnType = writeExpressionCode(tree.child(2));
             setLabel(endLabel);
             return returnType;
         }
 
         // write code for first child and check type
         if (token == LSQ) {
-            emit("aload 0");
+            writeExpressionCode(tree.child(0));
+            writeExpressionCode(tree.child(1));
+            Type arrayType = getVar(tree.child(0).toString()).type;
+            if (null == arrayType) {
+                ErrorStream.log("Unknown array type");
+            } else {
+                switch (arrayType) {
+                    case ARRAY_INT:
+                        emit("iaload");
+                        return Type.INT;
+                    case ARRAY_STRING:
+                        emit("aaload");
+                        return Type.STRING;
+                    default:
+                        ErrorStream.log("Unknown array type");
+                        break;
+                }
+            }
         }
 
-        boolean child0IsString = writeExpressionCode(tree.child(0));
+        Type child0 = writeExpressionCode(tree.child(0));
         // Deal with unary operators 
         switch (token) {
-            case LSQ:
-                emit("aaload");
-                return STR_TYPE;
             case NEGATE:
-                if (child0IsString) {
+                if (child0.isString()) {
                     ErrorStream.log("Attempt to apply \'-\' to a string.\n");
                 }
                 emit(NEGATE);
-                return INT_TYPE;	// assuming an int was intended!	
+                return Type.INT;	// assuming an int was intended!	
             //!!! Insert String operations here !!:
             case TO_INT:
-                if (!child0IsString) {
+                if (!child0.isString()) {
                     ErrorStream.log("Attempt to apply " + TO_INT.asText + " to an int.\n");
                 }
                 emit(token);
-                return INT_TYPE;
+                return Type.INT;
             case TO_STR:
-                if (child0IsString) {
+                if (child0.isString()) {
                     ErrorStream.log("Attempt to apply " + TO_STR.asText + " to a string.\n");
                 }
                 emit(token);
-                return STR_TYPE;
-            case LEN_STR:
-                if (!child0IsString) {
-                    ErrorStream.log("Attempt to get " + LEN_STR.asText + " of a non-string.\n");
+                return Type.STRING;
+            case LENGTH:
+                if (!child0.isString()) {
+                    ErrorStream.log("Attempt to get " + LENGTH.asText + " of a non-string.\n");
                 }
                 emit(token);
-                return INT_TYPE;
+                return Type.INT;
+        }
+
+        if (token == NEW_ARRAY) {
+            if (token == TYPE_INT) {
+                emit("newarray int");
+            } else {
+                emit("anewarray java/lang/String");
+            }
+            return Type.ARRAY_STRING;
         }
 
         // Now binary operations
-        boolean child1IsString = writeExpressionCode(tree.child(1));
+        Type child1 = writeExpressionCode(tree.child(1));
 
         switch (token) {
             case LE:
@@ -386,15 +405,15 @@ public class CodeGen {
             case GT:
             case EQ:
             case NE: {	// first deal with different types
-                if (child0IsString) {
-                    if (!child1IsString) {
+                if (child0.isString()) {
+                    if (!child1.isString()) {
                         ErrorStream.log(" <string> %s <int> is illegal.\n", token);
                     } else {
                         emit(COMPARE_STR);	// compare strings
                         emit(ZERO);		// to give compare with 0		
                     }
                 } else /* child0 is an int */ {
-                    if (child1IsString) {
+                    if (child1.isString()) {
                         ErrorStream.log(" <int> %s <string> is illegal.\n", token);
                     }
                 }
@@ -412,37 +431,37 @@ public class CodeGen {
                 emit(ONE);		// for true
                 setLabel(ifFalse);
             }
-            return INT_TYPE;	// int left on stack
+            return Type.INT;	// int left on stack
 
             // String and integer operations
             // !!!!! STRING OPS NOT YET COMPLETE !!!!
             case PLUS:
-                if (!child0IsString && !child1IsString) {
+                if (!child0.isString() && !child1.isString()) {
                     emit(PLUS);
-                    return INT_TYPE;
+                    return Type.INT;
                 } else {
-                    if (!child0IsString) {
+                    if (!child0.isString()) {
                         emit(SWAP);
                         emit(TO_STR);
                         emit(SWAP);
-                    } else if (!child1IsString) {
+                    } else if (!child1.isString()) {
                         emit(TO_STR);
                     }
                     emit(CONCAT);
-                    return STR_TYPE;
+                    return Type.STRING;
                 }
             case SHL:
             case SHR:
-                if (child1IsString) {
+                if (child1.isString()) {
                     ErrorStream.log("Tried to shift with a string");
-                    return INT_TYPE;
+                    return Type.INT;
                 }
-                if (!child0IsString) {
+                if (!child0.isString()) {
                     emit(token);
-                    return INT_TYPE;
+                    return Type.INT;
                 } else {
                     emit(token == SHL ? LEFT_STR : RIGHT_STR);
-                    return STR_TYPE;
+                    return Type.STRING;
                 }
             case MINUS:
             case TIMES:
@@ -453,11 +472,11 @@ public class CodeGen {
             case SHRS: {
                 emit(token);
             }
-            return INT_TYPE;
+            return Type.INT;
         }
 
         ErrorStream.log("Unexpected token in code generation %s", token.toString());
-        return INT_TYPE; // and why not!
+        return Type.INT; // and why not!
     }
 
 }

@@ -17,7 +17,6 @@ package sal.small;
 /*
  * Created by simon on 21/06/17.
  */
-
 import static sal.small.Descriptor.*;
 import static sal.small.Token.isStringName;
 
@@ -174,7 +173,7 @@ public class Scope extends HashMap<String, Descriptor> {
         return (d != null && d instanceof Descriptor.Label) ? (Label) d : null;
     }
 
-    public static Variable newLocal(String key, String typeName) {
+    public static Variable newLocal(String key, Type typeName) {
         // allocate the next local variable number
         Integer nextLocal = getValue(NEXT_LOCAL);
         int localVal = nextLocal + 1;
@@ -185,21 +184,17 @@ public class Scope extends HashMap<String, Descriptor> {
         return v;
     }
 
-    public static Variable newLocal(String key) {
-        return newLocal(key, isStringName(key) ? "~" : "I");
-    }
-
     public static Variable getVariable(String key) {
         Descriptor d = getAny(key);
         return (d != null && d instanceof Descriptor.Variable) ? (Variable) d : null;
     }
 
-    public static Variable newVariable(String key) {
-        Variable d = getVariable(key);
-        if (d == null) {
-            d = newLocal(key);
+    public static Variable newVariable(String key, Type type) {
+        Variable v = getVariable(key);
+        if (v == null) {
+            v = newLocal(key, type);
         }
-        return d;
+        return v;
     }
 
     public static void dump(String... strList) {

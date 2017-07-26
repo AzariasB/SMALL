@@ -9,18 +9,15 @@
 .end method
 .method public static main([Ljava/lang/String;)V
 .limit stack 10
-  aload 0
-  ldc 0
-  aaload
+  ldc 5
+  anewarray java/lang/String
   astore 1
   aload 1
-  invokestatic sal/Library/print(Ljava.lang.String;)V
-  aload_0
-  ldc 0
-  ldc "coucou"
+  ldc 4
+  ldc "azarias"
   aastore
-  aload 0
-  ldc 0
+  aload 1
+  ldc 4
   aaload
   invokestatic sal/Library/print(Ljava.lang.String;)V
     return

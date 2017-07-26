@@ -19,6 +19,7 @@ import java.util.EnumSet;
 import static sal.small.Tree.*;
 import static sal.small.Main.*;
 import static sal.small.Token.*;
+import sal.util.Patterned;
 
 /**
  * Reads the source and generates an AST (abstract syntax tree). There is a
@@ -70,9 +71,6 @@ public class Parse {
                 case IDENTIFIER:
                     aStatement = assignment();
                     break;
-                case LSQ:
-                    aStatement = arrayAssignement();
-                    break;
                 case FOR:
                     aStatement = forStatement();
                     break;
@@ -95,14 +93,6 @@ public class Parse {
             // add next statement to list
             stList.addChild(aStatement);
         }
-    }
-
-    private static Tree<Token> arrayAssignement() {
-        scan(); // [
-        Tree<Token> assignement = expression();
-        mustBe(RSQ);// ]
-        mustBe(ASSIGN);
-        return list(RSQ, assignement, expression());
     }
 
     private static Tree<Token> assignmentList() {
@@ -311,6 +301,11 @@ public class Parse {
         Token token = scan();
         if (skipToken(INCREMENT, DECREMENT)) {
             t = list(token, t);
+        } else if (skipToken(LSQ)) {
+            Tree<Token> assignement = expression();
+            mustBe(RSQ);// ]
+            mustBe(ASSIGN);
+            t = list(RSQ, t, assignement, expression());
         } else {
             mustBe(ASSIGN); // skip over the = token
             t = list(ASSIGN, t, expression());
@@ -431,6 +426,15 @@ public class Parse {
                 mustBe(RP);
                 return t;
             case IDENTIFIER:
+                scan();//Identifier
+                if (skipToken(LSQ)) {
+                    t = expression();//
+                    mustBe(RSQ);//return x[1] for example
+                    return list(LSQ, leaf(token, value), t);
+                } else {
+                    t = leaf(token, value);
+                }
+                break;
             case STRING:
                 t = leaf(token, value);
                 break;
@@ -442,11 +446,16 @@ public class Parse {
                 t = leaf(token, value);
                 break;
             }
-            case LSQ:
+            case LSQ://New array : x = [5] (entier|chaine)
                 scan();
                 t = expression();
                 mustBe(RSQ);
-                return list(LSQ, t);
+                Token type = currentToken();
+                if (!currentToken().isIn(TYPE_STRING, TYPE_INT)) {
+                    parseError("Found %s when expecting %s\n", currentText(), Patterned.expected(TYPE_STRING, TYPE_INT));
+                }
+                scan();
+                return list(NEW_ARRAY, t, leaf(type));
             case TRUE:
                 t = leaf(NUMBER, "1");
                 break;
@@ -458,7 +467,7 @@ public class Parse {
                 return list(NEGATE, term());
             case TO_INT:
             case TO_STR:
-            case LEN_STR:
+            case LENGTH:
                 scan();	// step over operator
                 return list(token, term());
             default:
@@ -470,7 +479,7 @@ public class Parse {
                         LP,
                         TO_INT,
                         TO_STR,
-                        LEN_STR,
+                        LENGTH,
                         STRING
                 );  // didn't find the start of an expression - there has to be one;
                 break;

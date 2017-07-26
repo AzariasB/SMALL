@@ -136,7 +136,7 @@ public class Code {
         libCall(FORMAT_STR, "format(~~)~");		// ~ with be replaced with String
         libCall(FORMAT_INT, "format(~I)~");		// ~ with be replaced with String
         libCall(COMPARE_STR, "strCmp(~~)I");	// ~ with be replaced with String
-        libCall(LEN_STR, "len(~)I");			// ~ with be replaced with String
+        libCall(LENGTH, "len(~)I");			// ~ with be replaced with String
         libCall(READ_INT, "readInt()I"); 		// call java scanner to get an integer
         libCall(READ_STR, "readStr()~"); 		// call java scanner to get a String
         libCall(PRINT_STR, "print(~)V");		// print String
@@ -158,7 +158,7 @@ public class Code {
             // name hasn't been declared yet?
             ErrorStream.log("Variable \'%s\' is used before it has been initialised\n", varName);
             // create a new variable anyway
-            var = newLocal(varName);
+            var = newLocal(varName, Type.STRING);
         }
         return var;
     }
@@ -180,14 +180,15 @@ public class Code {
         emitf("  iinc %s  %d\n", v.toString(), incDec);
     }
 
+
     /**
-     * Store a value from the stack using a descriptor.
+     * Stores a value from the stack using a descriptor, with the given typename
      *
-     * @param var Variable descriptor.
-     *
+     * @param varName
+     * @param typeName
      */
-    public static void store(String varName) {
-        emit(newVariable(varName).getStore());
+    public static void store(String varName, Type typeName) {
+        emit(newVariable(varName, typeName).getStore());
     }
 
     /**

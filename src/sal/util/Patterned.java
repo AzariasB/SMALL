@@ -55,16 +55,6 @@ public interface Patterned {
         return false;
     }
 
-    @SuppressWarnings("unchecked")
-    default public boolean isIn(Patterned current, Patterned... tokens) {
-        for (Patterned t : tokens) {
-            if (t == this) {
-                return true;
-            }
-        }
-        return false;
-    }
-
     /**
      * Produce a list of expected tokens.
      *

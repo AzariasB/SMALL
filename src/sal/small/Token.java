@@ -43,6 +43,8 @@ public enum Token implements Patterned {
     EOF,
     UNMATCHED,
     NUMBER(oneOf(some(DEC), "#" + some(HEX)), "<number>"),
+    TYPE_INT("entier"),
+    TYPE_STRING("chaine"),
     IDENTIFIER(ALPHA + any(in("A-Za-z0-9_" + RE.DOLLAR)), "<identifier>"),
     STRING(DQUOTE + any(BS + WILD, notIn(DQUOTE)) + DQUOTE, "<string>"),
     IF("si"), THEN("alors"), ELSE("sinon"), ELIF("sinonsi"), END("fin"),
@@ -68,14 +70,14 @@ public enum Token implements Patterned {
     INCREMENT(RE.PLUS + RE.PLUS, "++"),
     DECREMENT(RE.MINUS + RE.MINUS, "--"),
     // punctuation ...
-    SEMICOLON(";"), COMMA(","), LP(RE.LPAR, "("), RP(RE.RPAR, ")"), COLON(RE.COLON, ":"), QUERY(RE.QUERY,"?"), LSQ(RE.LSQ, "["), RSQ(RE.RSQ, "]"),
+    SEMICOLON(";"), COMMA(","), LP(RE.LPAR, "("), RP(RE.RPAR, ")"), COLON(RE.COLON, ":"), QUERY(RE.QUERY, "?"), LSQ(RE.LSQ, "["), RSQ(RE.RSQ, "]"),
     // tokens used to represent syn tax features ...
     STATEMENTLIST, BLOCK, // lists of statements
 
     // tokens to annotate the parse tree with extra information
     TO_STR("achaine"), // int to string
     TO_INT("aentier"), // convert string to int
-    LEN_STR("lon"), // string length
+    LENGTH("lon"), // string length
     PRINT_STR, // print a string
     PRINT_INT, // print an int
     READ_INT, // read an int variable
@@ -86,6 +88,7 @@ public enum Token implements Patterned {
     FORMAT_STR, // format a string
     FORMAT_INT, // format an int
     COMPARE_STR, // compare strings
+    NEW_ARRAY, // Create array
 
     // for internal use - please don't change!
     ZERO, ONE, SWAP;

@@ -52,7 +52,8 @@
 //lire number$
 //ecrire("Input + 10 = " + (aentier(number$) + 10) + "\n")
 //
-x$=[0]
-ecrire x$
-[0]="coucou"
-ecrire [0]
+
+
+ar = [5] entier
+ar[4] = "azarias"
+ecrire(ar[4])
