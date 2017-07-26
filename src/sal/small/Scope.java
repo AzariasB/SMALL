@@ -18,7 +18,6 @@ package sal.small;
  * Created by simon on 21/06/17.
  */
 import static sal.small.Descriptor.*;
-import static sal.small.Token.isStringName;
 
 import java.util.HashMap;
 

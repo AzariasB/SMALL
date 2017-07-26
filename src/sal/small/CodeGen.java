@@ -99,12 +99,16 @@ public class CodeGen {
         }
     }
 
+    public static boolean isStringVar(String name) {
+        return getVar(name).type.isString();
+    }
+
     // small method for checking int/string types 
     public static boolean isStringVar(Tree<Token> tree) {
         if (!tree.isLeaf()) {
             return false;
         }
-        return isStringName(tree);
+        return isStringVar(tree.toString());
     }
 
     /**
@@ -159,12 +163,14 @@ public class CodeGen {
                 Tree<Token> var = tree.child(0);
                 writeExpressionCode(var);
                 writeExpressionCode(tree.child(1));
-                writeExpressionCode(tree.child(2));
+                Type assignT = writeExpressionCode(tree.child(2));
                 Type t = getVar(var.toString()).type;
-                if (t == Type.ARRAY_INT) {
+                if (t == Type.ARRAY_INT && assignT == Type.INT) {
                     emit("iastore");
-                } else if (t == Type.ARRAY_STRING) {
+                } else if (t == Type.ARRAY_STRING && assignT == Type.STRING) {
                     emit("aastore");
+                } else {
+                    ErrorStream.log("Tried to assign bad type to array\n");
                 }
 
             }
@@ -335,7 +341,7 @@ public class CodeGen {
         }
 
         // write code for first child and check type
-        if (token == LSQ) {
+        if (token == LSQ) {//Load from array
             writeExpressionCode(tree.child(0));
             writeExpressionCode(tree.child(1));
             Type arrayType = getVar(tree.child(0).toString()).type;
@@ -386,17 +392,29 @@ public class CodeGen {
                 return Type.INT;
         }
 
+        Tree<Token> child1 = tree.child(1);
+
         if (token == NEW_ARRAY) {
-            if (token == TYPE_INT) {
-                emit("newarray int");
+            if (null == child1.token) {
+                ErrorStream.log("Unknown array type");
+                return Type.INT;
             } else {
-                emit("anewarray java/lang/String");
+                switch (child1.token) {
+                    case TYPE_INT:
+                        emit("newarray int");
+                        return Type.ARRAY_INT;
+                    case TYPE_STRING:
+                        emit("anewarray java/lang/String");
+                        return Type.ARRAY_STRING;
+                    default:
+                        ErrorStream.log("Unknown array type");
+                        return Type.INT;
+                }
             }
-            return Type.ARRAY_STRING;
         }
 
         // Now binary operations
-        Type child1 = writeExpressionCode(tree.child(1));
+        Type child1Type = writeExpressionCode(child1);
 
         switch (token) {
             case LE:
@@ -406,14 +424,14 @@ public class CodeGen {
             case EQ:
             case NE: {	// first deal with different types
                 if (child0.isString()) {
-                    if (!child1.isString()) {
+                    if (!child1Type.isString()) {
                         ErrorStream.log(" <string> %s <int> is illegal.\n", token);
                     } else {
                         emit(COMPARE_STR);	// compare strings
                         emit(ZERO);		// to give compare with 0		
                     }
                 } else /* child0 is an int */ {
-                    if (child1.isString()) {
+                    if (child1Type.isString()) {
                         ErrorStream.log(" <int> %s <string> is illegal.\n", token);
                     }
                 }
@@ -436,7 +454,7 @@ public class CodeGen {
             // String and integer operations
             // !!!!! STRING OPS NOT YET COMPLETE !!!!
             case PLUS:
-                if (!child0.isString() && !child1.isString()) {
+                if (!child0.isString() && !child1Type.isString()) {
                     emit(PLUS);
                     return Type.INT;
                 } else {
@@ -444,7 +462,7 @@ public class CodeGen {
                         emit(SWAP);
                         emit(TO_STR);
                         emit(SWAP);
-                    } else if (!child1.isString()) {
+                    } else if (!child1Type.isString()) {
                         emit(TO_STR);
                     }
                     emit(CONCAT);
@@ -452,7 +470,7 @@ public class CodeGen {
                 }
             case SHL:
             case SHR:
-                if (child1.isString()) {
+                if (child1Type.isString()) {
                     ErrorStream.log("Tried to shift with a string");
                     return Type.INT;
                 }

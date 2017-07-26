@@ -145,7 +145,7 @@ public class Descriptor {
         char shortCode = typeCode.charAt(0);
         if (shortCode == 'l') {
             return "a";
-        } else if (type.isArray()) {
+        } else if (type.isArray() || type.isString()) {
             return "a";
         } else if (shortCode != '[') {
             return Character.toString(shortCode);
@@ -205,10 +205,12 @@ public class Descriptor {
         }
 
         // by default this does getstatic
+        @Override
         public String getLoad() {
             return String.format("getstatic %s %s", this.toString(), this.type.getCode());
         }
 
+        @Override
         public String getStore() {
             return String.format("putstatic %s %s", this.toString(), this.type.getCode());
         }

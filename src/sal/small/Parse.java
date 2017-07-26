@@ -260,7 +260,7 @@ public class Parse {
         do {
             String name = currentText();
             mustBe(IDENTIFIER);
-            readList.addChild(leaf(isStringName(name) ? READ_STR : READ_INT, name));
+            readList.addChild(leaf(CodeGen.isStringVar(name) ? READ_STR : READ_INT, name));
         } while (skipToken(COMMA));
         return readList;
     }
@@ -426,8 +426,8 @@ public class Parse {
                 mustBe(RP);
                 return t;
             case IDENTIFIER:
-                scan();//Identifier
                 if (skipToken(LSQ)) {
+                    scan();//Identifier
                     t = expression();//
                     mustBe(RSQ);//return x[1] for example
                     return list(LSQ, leaf(token, value), t);

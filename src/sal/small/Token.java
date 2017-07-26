@@ -123,11 +123,6 @@ public enum Token implements Patterned {
         return asText;
     }
 
-    //////////////////////////////////////////////////////////////////////////////////////////////
-    static public boolean isStringName(Object s) {
-        return s.toString().endsWith("$");
-    }
-
     /**
      * Initialise the lexer to take input from a BufferedReader via calls to
      * scan.
