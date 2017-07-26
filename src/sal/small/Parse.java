@@ -431,10 +431,7 @@ public class Parse {
                     t = expression();//
                     mustBe(RSQ);//return x[1] for example
                     return list(LSQ, leaf(token, value), t);
-                } else {
-                    t = leaf(token, value);
                 }
-                break;
             case STRING:
                 t = leaf(token, value);
                 break;

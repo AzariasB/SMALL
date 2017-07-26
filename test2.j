@@ -11,11 +11,17 @@
 .limit stack 10
   ldc "bonjour"
   astore 1
+  ldc 1
+  istore 2
   aload 1
   invokestatic sal/Library/print(Ljava.lang.String;)V
   ldc "\n"
   invokestatic sal/Library/print(Ljava.lang.String;)V
+  iload 2
+  invokestatic sal/Library/print(I)V
+  ldc "\n"
+  invokestatic sal/Library/print(Ljava.lang.String;)V
     return
-.limit locals 2
+.limit locals 3
 .end method
 
