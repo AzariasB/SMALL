@@ -54,7 +54,10 @@
 //
 
 b= "bonjour"
+c= 1
 ecrire b
+ecrire "\n"
+ecrire c
 ecrire "\n"
 //ar = [5] entier
 //ar[4] = 6
