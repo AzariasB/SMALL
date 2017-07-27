@@ -36,6 +36,9 @@ import static sal.small.Code.*;
  * in a 'wrapper' - a Jasmin program with 'housekeeping already done so that all
  * {@link #generate(Tree, Scope)} needs to do is deal with each tree node type
  * as it finds it.
+ * 
+ * @author Simon
+ * @author Azarias
  */
 public class CodeGen {
 

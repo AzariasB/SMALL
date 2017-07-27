@@ -21,6 +21,11 @@ import static sal.small.Descriptor.*;
 
 import java.util.HashMap;
 
+/**
+ * 
+ * @author Simon
+ * @author azarias
+ */
 public class Scope extends HashMap<String, Descriptor> {
 
     /**

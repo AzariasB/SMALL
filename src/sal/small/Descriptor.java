@@ -23,6 +23,9 @@ package sal.small;
  *
  *
  * Created by simon on 18/06/17.
+ * 
+ * @author Simon
+ * @author Azarias
  */
 public class Descriptor {
 

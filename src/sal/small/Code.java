@@ -27,6 +27,8 @@ import static sal.small.Token.*;
 
 /**
  * Generate Jasmin (Java Assembler) code from a syntax tree.
+ * @author Simon
+ * @author Azarias
  *
  */
 public class Code {

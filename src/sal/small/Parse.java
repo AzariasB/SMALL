@@ -26,6 +26,9 @@ import sal.util.Patterned;
  * separate method for each grammar rule. Each method called returns an AST for
  * the statement it has processed. The Syntax rules for each method is given
  * with the method.
+ * 
+ * @author Simon
+ * @author Azarias
  */
 public class Parse {
 
@@ -95,6 +98,11 @@ public class Parse {
         }
     }
 
+    /**
+     * List of assignement, used for 'for' statement
+     *
+     * @return list of assignement
+     */
     private static Tree<Token> assignmentList() {
         Tree<Token> asList = list(STATEMENTLIST);
         for (;;) {
@@ -109,7 +117,7 @@ public class Parse {
     }
 
     /**
-     * Grammar rul {@code forStatement : 'for' assignementList [while expression][then assignementList] 'do' statementList 'end'
+     * Grammar rul {@code forStatement : 'for' assignementList ['while' expression]['then' assignementList] 'do' statementList 'end'
      * }
      *
      * @return AST for forStatement
@@ -140,6 +148,13 @@ public class Parse {
         return body;
     }
 
+    /**
+     * Grammar rule {@code switchStatement  : 'switch' expression 'do' ['case' ':' statementList ['break']]* ['default' ':' statementList] 'end'
+     * }
+     *
+     *
+     * @return AST for switch statement
+     */
     private static Tree<Token> switchStatement() {
         scan();//'switch'
         Tree<Token> body = list(SWITCH);
@@ -214,21 +229,6 @@ public class Parse {
         Tree<Token> t = expression();
         mustBe(DO);
         t = list(WHILE, t, statementList());
-        mustBe(END);
-        return t;
-    }
-
-    /**
-     * Grammar rule {@code untilStatement : 'until' expression 'do' statementList 'end'
-     * }
-     *
-     * @return AST for untilStatement
-     */
-    public static Tree<Token> untilStatement() {
-        scan();// skip the 'until' token
-        Tree<Token> t = expression();
-        mustBe(DO);
-        t = list(UNTIL, t, statementList());
         mustBe(END);
         return t;
     }
@@ -314,7 +314,7 @@ public class Parse {
     }
 
     /**
-     * Grammar rule {@code expression      : relopExpression }
+     * Grammar rule {@code expression      : turnaryExpression }
      *
      * @return AST.
      */

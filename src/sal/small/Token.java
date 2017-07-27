@@ -37,6 +37,9 @@ import static sal.util.RE.*;
 
 /**
  * This file contains the definition of the enum Token.
+ * 
+ * @author Simon
+ * @author Azarias
  */
 public enum Token implements Patterned {
 
