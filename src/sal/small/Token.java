@@ -80,7 +80,6 @@ public enum Token implements Patterned {
     LENGTH("lon"), // string length
     PRINT_STR, // print a string
     PRINT_INT, // print an int
-    READ_INT, // read an int variable
     READ_STR, // read a string
     CONCAT, // join strings
     RIGHT_STR, // select rightmost chars
@@ -89,7 +88,7 @@ public enum Token implements Patterned {
     FORMAT_INT, // format an int
     COMPARE_STR, // compare strings
     NEW_ARRAY, // Create array
-
+    ARRAY_LENGTH,
     // for internal use - please don't change!
     ZERO, ONE, SWAP;
 

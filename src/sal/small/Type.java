@@ -25,6 +25,10 @@ public enum Type {
         return this.code;
     }
 
+    public boolean isInt() {
+        return this == INT;
+    }
+
     public boolean isString() {
         return this == STRING;
     }

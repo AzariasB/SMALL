@@ -21,7 +21,7 @@ import java.util.Scanner;
 
 public class Library {
 
-    private static Scanner scanInput = new Scanner(System.in);
+    private static final Scanner scanInput = new Scanner(System.in);
 
     public static void print(String s) {
         System.out.print(s);
@@ -29,10 +29,6 @@ public class Library {
 
     public static void print(int n) {
         System.out.print(n);
-    }
-
-    public static int readInt() {
-        return scanInput.nextInt();
     }
 
     public static String readStr() {

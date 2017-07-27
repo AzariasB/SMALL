@@ -18,6 +18,10 @@ import sal.util.Templater;
 import sal.util.ErrorStream;
 
 import java.io.PrintStream;
+import java.util.HashMap;
+import java.util.Map;
+import java.util.function.Consumer;
+import java.util.function.Function;
 
 import static sal.small.Scope.*;
 import static sal.small.Descriptor.*;
@@ -34,6 +38,8 @@ import static sal.small.Code.*;
  * as it finds it.
  */
 public class CodeGen {
+
+    private final static Map<Token, Consumer<Tree<Token>>> actions = new HashMap<>();
 
     /**
      * Writes (to the PrintStream provided by CodeWriter) a boilerplate Jasmin
@@ -112,6 +118,250 @@ public class CodeGen {
     }
 
     /**
+     * Case statementlist
+     *
+     * @param tree
+     */
+    private static void statemenListAction(Tree<Token> tree) {
+        tree.allChildren().forEach((tst) -> {
+            writeStatementCode(tst);
+        });
+    }
+
+    /**
+     * Case block
+     *
+     * @param tree
+     */
+    private static void block(Tree<Token> tree) {
+        beginScope();
+        tree.allChildren().forEach((tst) -> {
+            writeStatementCode(tst);
+        });
+        endScope();
+    }
+
+    /**
+     * case decrement case increment
+     *
+     * @param tree
+     */
+    private static void incrDecrement(Tree<Token> tree) {
+        Tree<Token> var = tree.child(0);
+        increment(var.toString(), (tree.token == INCREMENT) ? 1 : -1);
+    }
+
+    /**
+     * Case ASSIGN
+     *
+     * @param tree
+     */
+    private static void assign(Tree<Token> tree) {
+        Tree<Token> var = tree.child(0);
+        Type stringExp = writeExpressionCode(tree.child(1));
+        store(var.toString(), stringExp);
+    }
+
+    /**
+     * Case RSQ
+     *
+     * @param tree
+     */
+    private static void rightSquare(Tree<Token> tree) {
+        Tree<Token> var = tree.child(0);
+        writeExpressionCode(var);
+        writeExpressionCode(tree.child(1));
+        Type assignT = writeExpressionCode(tree.child(2));
+        Type t = getVar(var.toString()).type;
+        if (t == Type.ARRAY_INT && assignT == Type.INT) {
+            emit("iastore");
+        } else if (t == Type.ARRAY_STRING && assignT == Type.STRING) {
+            emit("aastore");
+        } else {
+            ErrorStream.log("Tried to assign bad type to array\n");
+        }
+    }
+
+    /**
+     * Case IF
+     *
+     * @param tree
+     */
+    private static void ifStatement(Tree<Token> tree) {
+        beginScope();	// start a scope to cover the whole if
+        Label endIf = newLabel("END IF");  // label for this end-if 
+        int pairs = tree.children();	// (test then code)+
+        for (int i = 0; i < pairs; i += 2) {
+            Tree<Token> test = tree.child(i);
+            Tree<Token> code = tree.child(i + 1);
+            if (test != null) {	// not 'else' part
+                Label nextTest = newLabel("NEXT TEST");  // for jump to next elif/else 		
+                writeExpressionCode(test, Type.INT);
+                ifFalse(nextTest);
+                writeStatementCode(code);
+                jump(endIf);
+                setLabel(nextTest);
+            } else {
+                writeStatementCode(code);
+            }
+        }
+        setLabel(endIf);
+        endScope();
+    }
+
+    /**
+     * Case While
+     *
+     * @param tree
+     */
+    private static void whileStatement(Tree<Token> tree) {
+        beginScope();
+        Label continueLabel = newLabel("NEXT LOOP");
+        Label breakLabel = newLabel("EXIT LOOP");
+        setLabel(continueLabel);	// jump back here for 'continue'
+        Tree<Token> testExpr = tree.child(0);
+        if (testExpr != null) {		// 'null' for do/end
+            writeExpressionCode(tree.child(0), Type.INT);  		// expression to test  
+            ifFalse(breakLabel);		// if not true, 'break'
+        }
+        writeStatementCode(tree.child(1)); 		// content of while/do
+        jump(continueLabel);		// jump back to beginning
+        setLabel(breakLabel);		// outside while
+        endScope();
+    }
+
+    /**
+     * Case switch
+     *
+     * @param tree
+     */
+    private static void switchStatement(Tree<Token> tree) {
+        beginScope();
+        Label endSwitch = newLabel("EXIT SWITCH");
+        int pairs = tree.children();
+        Label afterCase = newLabel("AFTER CASE");
+        for (int i = 0; i < pairs; i += 2) {
+            Tree<Token> test = tree.child(i);
+            Tree<Token> code = tree.child(i + 1);
+            if (test != null) {
+                Label nextTest = newLabel("NEXT CASE");
+                writeExpressionCode(test);
+                ifFalse(nextTest);
+                setLabel(afterCase);
+                afterCase = newLabel("AFTER CASE");
+                writeStatementCode(code);
+                jump(afterCase);//Will jump only if no break in statement list
+                setLabel(nextTest);
+            } else {
+                setLabel(afterCase);
+                writeStatementCode(code);
+            }
+        }
+        setLabel(endSwitch);
+        endScope();
+    }
+
+    /**
+     * Case UNTil
+     *
+     * @param tree
+     */
+    private static void untilStatement(Tree<Token> tree) {
+        beginScope();
+        Label continueLabel = newLabel("NEXT LOOP");
+        Label breakLabel = newLabel("EXIT LOOP");
+        Label startLabel = newLabel("START LOOP");
+        setLabel(startLabel); 		//	jump to here exit conmdition isn't met
+        writeStatementCode(tree.child(1)); 		// contents of do/until loop
+        setLabel(continueLabel);	// 'continue' goes to just before the test
+
+        //!!!!! the following lines replace the lines
+        //!!!!!   	writeExpressionCode(tree.child(0), INT_TYPE);  	// code for test
+        //!!!!!	  	ifFalse(startLabel);		// if test fails jump back to start
+        //!!!!!  in the original version	
+        Tree<Token> test = tree.child(0);
+        if (test != null) {
+            writeExpressionCode(test, Type.INT);  	// code for test
+            ifFalse(startLabel);		// if test fails jump back to start
+        }
+        //!!!!!!!!! end of changes
+        setLabel(breakLabel);		// or continue here
+        endScope();
+    }
+
+    /**
+     * Case break
+     *
+     * @param tree
+     */
+    private static void breakStatement(Tree<Token> tree) {
+        Label l = getLabel("EXIT LOOP");
+        if (l == null) {
+            l = getLabel("EXIT SWITCH");
+        }
+        if (l == null) {
+            ErrorStream.log("'break' used outside of loop or switch.\n");
+        } else {
+            jump(l);
+        }
+    }
+
+    /**
+     * Case Continue
+     *
+     * @param tree
+     */
+    private static void continueStatement(Tree<Token> tree) {
+        Label l = getLabel("NEXT LOOP");
+        if (l == null) {
+            ErrorStream.log("\'break\' or \'continue\' used outside a loop.\n");
+        } else {
+            jump(l);
+        }
+    }
+
+    //Case halt
+    /**
+     * Case print
+     *
+     * @param tree
+     */
+    private static void printStatement(Tree<Token> tree) {
+        boolean isString = writeExpressionCode(tree.child(0)).isString();
+        emit(isString ? PRINT_STR : PRINT_INT);
+    }
+
+    /**
+     * Case readStatement
+     *
+     * @param tree
+     */
+    private static void readStatement(Tree<Token> tree) {
+        emit(tree.token);
+        store(tree.toString(), Type.STRING);
+    }
+
+    static {
+        actions.put(STATEMENTLIST, CodeGen::statemenListAction);
+        actions.put(BLOCK, CodeGen::block);
+        actions.put(ASSIGN, CodeGen::assign);
+        actions.put(DECREMENT, CodeGen::incrDecrement);
+        actions.put(INCREMENT, CodeGen::incrDecrement);
+        actions.put(RSQ, CodeGen::rightSquare);
+        actions.put(IF, CodeGen::ifStatement);
+        actions.put(WHILE, CodeGen::whileStatement);
+        actions.put(SWITCH, CodeGen::switchStatement);
+        actions.put(UNTIL, CodeGen::untilStatement);
+        actions.put(BREAK, CodeGen::breakStatement);
+        actions.put(READ_STR, CodeGen::readStatement);
+        actions.put(PRINT, CodeGen::printStatement);
+        actions.put(CONTINUE, CodeGen::continueStatement);
+        actions.put(HALT, t -> {
+            emit("return");
+        });
+    }
+
+    /**
      * Generate Jasmin assembler from an AST.
      *
      * @param t The AST.
@@ -120,193 +370,10 @@ public class CodeGen {
      * {@link java.io.PrintStream PrintStream} out.
      */
     static void writeStatementCode(Tree<Token> tree) {
-
         if (tree == null) {
             return;
         }
-        Token token = tree.token();
-
-        switch (token) {
-
-            // generate code for a list of statements
-            case STATEMENTLIST:
-                tree.allChildren().forEach((tst) -> {
-                    writeStatementCode(tst);
-                });
-                return;
-
-            // as STATEMENTLIST but within a new scope
-            case BLOCK: {
-                beginScope();
-                tree.allChildren().forEach((tst) -> {
-                    writeStatementCode(tst);
-                });
-                endScope();
-            }
-            return;
-
-            // individual statements
-            case DECREMENT:
-            case INCREMENT: {
-                Tree<Token> var = tree.child(0);
-                increment(var.toString(), (token == INCREMENT) ? 1 : -1);
-            }
-            return;
-
-            case ASSIGN: {
-                Tree<Token> var = tree.child(0);
-                Type stringExp = writeExpressionCode(tree.child(1));
-                store(var.toString(), stringExp);
-            }
-            return;
-            case RSQ: {
-                Tree<Token> var = tree.child(0);
-                writeExpressionCode(var);
-                writeExpressionCode(tree.child(1));
-                Type assignT = writeExpressionCode(tree.child(2));
-                Type t = getVar(var.toString()).type;
-                if (t == Type.ARRAY_INT && assignT == Type.INT) {
-                    emit("iastore");
-                } else if (t == Type.ARRAY_STRING && assignT == Type.STRING) {
-                    emit("aastore");
-                } else {
-                    ErrorStream.log("Tried to assign bad type to array\n");
-                }
-
-            }
-            return;
-            case IF: {
-                beginScope();	// start a scope to cover the whole if
-                Label endIf = newLabel("END IF");  // label for this end-if 
-                int pairs = tree.children();	// (test then code)+
-                for (int i = 0; i < pairs; i += 2) {
-                    Tree<Token> test = tree.child(i);
-                    Tree<Token> code = tree.child(i + 1);
-                    if (test != null) {	// not 'else' part
-                        Label nextTest = newLabel("NEXT TEST");  // for jump to next elif/else 		
-                        writeExpressionCode(test, Type.INT);
-                        ifFalse(nextTest);
-                        writeStatementCode(code);
-                        jump(endIf);
-                        setLabel(nextTest);
-                    } else {
-                        writeStatementCode(code);
-                    }
-                }
-                setLabel(endIf);
-                endScope();
-            }
-            return;
-
-            case WHILE: { // also do/end
-                beginScope();
-                Label continueLabel = newLabel("NEXT LOOP");
-                Label breakLabel = newLabel("EXIT LOOP");
-                setLabel(continueLabel);	// jump back here for 'continue'
-                Tree<Token> testExpr = tree.child(0);
-                if (testExpr != null) {		// 'null' for do/end
-                    writeExpressionCode(tree.child(0), Type.INT);  		// expression to test  
-                    ifFalse(breakLabel);		// if not true, 'break'
-                }
-                writeStatementCode(tree.child(1)); 		// content of while/do
-                jump(continueLabel);		// jump back to beginning
-                setLabel(breakLabel);		// outside while
-                endScope();
-            }
-            return;
-
-            case SWITCH: {
-                beginScope();
-                Label endSwitch = newLabel("EXIT SWITCH");
-                int pairs = tree.children();
-                Label afterCase = newLabel("AFTER CASE");
-                for (int i = 0; i < pairs; i += 2) {
-                    Tree<Token> test = tree.child(i);
-                    Tree<Token> code = tree.child(i + 1);
-                    if (test != null) {
-                        Label nextTest = newLabel("NEXT CASE");
-                        writeExpressionCode(test);
-                        ifFalse(nextTest);
-                        setLabel(afterCase);
-                        afterCase = newLabel("AFTER CASE");
-                        writeStatementCode(code);
-                        jump(afterCase);//Will jump only if no break in statement list
-                        setLabel(nextTest);
-                    } else {
-                        setLabel(afterCase);
-                        writeStatementCode(code);
-                    }
-                }
-                setLabel(endSwitch);
-                endScope();
-            }
-            return;
-
-            case UNTIL: {
-                beginScope();
-                Label continueLabel = newLabel("NEXT LOOP");
-                Label breakLabel = newLabel("EXIT LOOP");
-                Label startLabel = newLabel("START LOOP");
-                setLabel(startLabel); 		//	jump to here exit conmdition isn't met
-                writeStatementCode(tree.child(1)); 		// contents of do/until loop
-                setLabel(continueLabel);	// 'continue' goes to just before the test
-
-                //!!!!! the following lines replace the lines
-                //!!!!!   	writeExpressionCode(tree.child(0), INT_TYPE);  	// code for test
-                //!!!!!	  	ifFalse(startLabel);		// if test fails jump back to start
-                //!!!!!  in the original version	
-                Tree<Token> test = tree.child(0);
-                if (test != null) {
-                    writeExpressionCode(test, Type.INT);  	// code for test
-                    ifFalse(startLabel);		// if test fails jump back to start
-                }
-                //!!!!!!!!! end of changes
-                setLabel(breakLabel);		// or continue here
-                endScope();
-            }
-            return;
-
-            case BREAK: {
-                Label l = getLabel("EXIT LOOP");
-                if (l == null) {
-                    l = getLabel("EXIT SWITCH");
-                }
-                if (l == null) {
-                    ErrorStream.log("'break' used outside of loop or switch.\n");
-                } else {
-                    jump(l);
-                }
-            }
-            return;
-            case CONTINUE: {
-                Label l = getLabel("NEXT LOOP");
-                if (l == null) {
-                    ErrorStream.log("\'break\' or \'continue\' used outside a loop.\n");
-                } else {
-                    jump(l);
-                }
-                return;
-            }
-            case HALT:
-                emit("return");
-                break;
-            case PRINT: {
-                boolean isString = writeExpressionCode(tree.child(0)).isString();
-                emit(isString ? PRINT_STR : PRINT_INT);
-                return;
-            }
-
-            case READ_STR:
-                emit(token);
-                store(tree.toString(), Type.STRING);
-                break;
-            case READ_INT: {
-                emit(token);
-                store(tree.toString(), Type.INT);
-                break;
-            }
-
-        }
+        actions.get(tree.token).accept(tree);
     }
 
     public static void writeExpressionCode(Tree<Token> tree, Type needsString) {
@@ -385,10 +452,13 @@ public class CodeGen {
                 emit(token);
                 return Type.STRING;
             case LENGTH:
-                if (!child0.isString()) {
+                if (child0.isArray()) {
+                    emit(ARRAY_LENGTH);
+                } else if (!child0.isString()) {
                     ErrorStream.log("Attempt to get " + LENGTH.asText + " of a non-string.\n");
+                } else {
+                    emit(token);
                 }
-                emit(token);
                 return Type.INT;
         }
 

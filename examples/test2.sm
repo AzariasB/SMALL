@@ -1,57 +1,60 @@
 
-//y$ = 0 == 1 ? "deux" : "non"
-//ecrire y$ + "\n"
-//
-//x$ = "deux"
-//aiguiller x$ faire
-//    cas "deux":
-//        ecrire "coucou\n"
-//        rompre
-//    cas "trois":
-//        ecrire "nope\n"
-//    cas "quatre":
-//        ecrire "c'est bon\n"
-//    cas "vingt":
-//        ecrire "c'est y \n"
-//    defaut:
-//        ecrire "defaut\n"
-//fin
-//
-//ecrire "Full loop\n"
-//pour i = 0 tantque i < 10 alors i++ faire
-//    ecrire i + "\n"
-//fin
-//
-//ecrire "Simple loop\n"
-//pour j = 0 faire
-//    ecrire j + "\n"
-//    j++
-//    si j >= 10 rompre
-//fin
-//
-//ecrire "Incremental loop\n"
-//pour k = 0 alors k++ faire
-//    ecrire k*2 + "\n"
-//    si k > 100 rompre
-//fin
-//
-//ecrire "Conditionnal loop\n"
-//pour l = 0 tantque l < 10 faire
-//    l++
-//    si l == 5 continuer
-//    ecrire ("Conditional " + l + "\n")
-//fin
-//
-//ecrire("hello" << 2)
-//ecrire("good bye" >> 3)
-//ecrire("good" == "bad" ? "Good is bad\n" : "Good is not bad\n")
-//ecrire("Input:")
-//lire input$
-//ecrire(input$ + "'s length : " + lon(input$) +"\n")
-//ecrire("Input a number:")
-//lire number$
-//ecrire("Input + 10 = " + (aentier(number$) + 10) + "\n")
-//
+y = 0 == 1 ? "deux" : "non"
+ecrire y + "\n"
+
+x = "deux"
+aiguiller x faire
+    cas "deux":
+        ecrire "coucou\n"
+        rompre
+    cas "trois":
+        ecrire "nope\n"
+    cas "quatre":
+        ecrire "c'est bon\n"
+    cas "vingt":
+        ecrire "c'est y \n"
+    defaut:
+        ecrire "defaut\n"
+fin
+
+ecrire "Full loop\n"
+pour i = 0 tantque i < 10 alors i++ faire
+    ecrire i + "\n"
+fin
+
+ecrire "Simple loop\n"
+pour j = 0 faire
+    ecrire j + "\n"
+    j++
+    si j >= 10 rompre
+fin
+
+ecrire "Incremental loop\n"
+pour k = 0 alors k++ faire
+    ecrire k*2 + "\n"
+    si k > 100 rompre
+fin
+
+ecrire "Conditionnal loop\n"
+pour l = 0 tantque l < 10 faire
+    l++
+    si l == 5 continuer
+    ecrire ("Conditional " + l + "\n")
+fin
+
+ecrire("hello" << 2)
+ecrire("good bye" >> 3)
+ecrire("good" == "bad" ? "Good is bad\n" : "Good is not bad\n")
+ecrire("Input:")
+input = "3"
+ecrire "Saisir une chaine: "
+lire input
+ecrire("Vous avez saisit : " + input + "\n")
+ecrire(input + "'s length : " + lon(input) +"\n")
+ecrire("Input a number:")
+lire number
+ecrire("Input + 10 = " + (aentier(number) + 10) + "\n")
+
 
 b= "bonjour"
 c= 1
@@ -59,6 +62,7 @@ ecrire b
 ecrire "\n"
 ecrire c
 ecrire "\n"
-//ar = [5] entier
-//ar[4] = 6
-//ecrire(ar[4] + "\n" + b)
+ar = [5] entier
+ar[4] = 6
+ecrire("Longueur de l'array : " + lon(ar) + "\n")
+ecrire(ar[4] + "\n" + lon("coucou") + "\n")

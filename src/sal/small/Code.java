@@ -125,6 +125,7 @@ public class Code {
         opCode.put(STRING, "ldc");
         opCode.put(ONE, "iconst_1");
         opCode.put(ZERO, "iconst_0");
+        opCode.put(ARRAY_LENGTH, "arraylength");
 
         opCode.put(SWAP, "swap");
 
@@ -137,7 +138,6 @@ public class Code {
         libCall(FORMAT_INT, "format(~I)~");		// ~ with be replaced with String
         libCall(COMPARE_STR, "strCmp(~~)I");	// ~ with be replaced with String
         libCall(LENGTH, "len(~)I");			// ~ with be replaced with String
-        libCall(READ_INT, "readInt()I"); 		// call java scanner to get an integer
         libCall(READ_STR, "readStr()~"); 		// call java scanner to get a String
         libCall(PRINT_STR, "print(~)V");		// print String
         libCall(PRINT_INT, "print(I)V");		// print String
@@ -177,9 +177,12 @@ public class Code {
 
     public static void increment(String varName, int incDec) {
         Variable v = getVar(varName);
-        emitf("  iinc %s  %d\n", v.toString(), incDec);
+        if (v.type.isInt()) {
+            emitf("  iinc %s  %d\n", v.toString(), incDec);
+        }else{
+            ErrorStream.log("Trying to increment non-int variable\n");
+        }
     }
-
 
     /**
      * Stores a value from the stack using a descriptor, with the given typename
